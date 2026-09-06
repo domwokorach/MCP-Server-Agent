@@ -1,5 +1,3 @@
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import { SectionCard, StatusChip } from "@/components/ui";
 import { listMcpServers } from "@/services/mcpService";
 import { formatRelativeTime } from "@/lib/format";
@@ -9,32 +7,17 @@ export async function McpStatusSettings() {
 
   return (
     <SectionCard title="MCP servers" subtitle="Model Context Protocol servers available to your agents.">
-      <Stack spacing={2} divider={<Stack sx={{ borderTop: "1px solid", borderColor: "divider" }} />}>
+      <div className="divide-y divide-border">
         {servers.map((server) => (
-          <Stack
-            key={server.id}
-            direction="row"
-            sx={{
-              justifyContent: "space-between",
-              alignItems: "center",
-              pt: 1
-            }}>
-            <Stack spacing={0.25}>
-              <Typography variant="body2" sx={{
-                fontWeight: 600
-              }}>
-                {server.name}
-              </Typography>
-              <Typography variant="caption" sx={{
-                color: "text.secondary"
-              }}>
-                {server.endpoint} · {server.toolCount} tools · pinged {formatRelativeTime(server.lastPing)}
-              </Typography>
-            </Stack>
+          <div key={server.id} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{server.name}</p>
+              <p className="mt-1 truncate text-xs text-muted-foreground">{server.endpoint} · {server.toolCount} tools · pinged {formatRelativeTime(server.lastPing)}</p>
+            </div>
             <StatusChip status={server.connected ? "online" : "offline"} />
-          </Stack>
+          </div>
         ))}
-      </Stack>
+      </div>
     </SectionCard>
   );
 }

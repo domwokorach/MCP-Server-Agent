@@ -1,52 +1,24 @@
-import MuiBreadcrumbs from "@mui/material/Breadcrumbs";
-import Typography from "@mui/material/Typography";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import type { HeaderBreadcrumb } from "./types";
 
 export function Breadcrumbs({ items }: { items: HeaderBreadcrumb[] }) {
   return (
-    <MuiBreadcrumbs
-      aria-label="Breadcrumb"
-      separator={<ChevronRight size={14} color="var(--header-muted)" />}
-      sx={{
-        display: { xs: "none", sm: "flex" },
-        mb: 0.25,
-        "& .MuiBreadcrumbs-ol": { flexWrap: "nowrap" },
-        "& .MuiBreadcrumbs-li": { minWidth: 0 },
-      }}
-    >
+    <nav aria-label="Breadcrumb" className="mb-1 hidden min-w-0 items-center gap-1.5 overflow-hidden text-xs sm:flex">
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
-        const label = (
-          <Typography
-            noWrap
-            component="span"
-            sx={{
-              fontSize: "0.8125rem",
-              fontWeight: isLast ? 600 : 500,
-              color: isLast ? "var(--header-title)" : "var(--header-muted)",
-              transition: "color 0.15s ease",
-            }}
-          >
-            {item.label}
-          </Typography>
-        );
+        const label = <span className={`truncate ${isLast ? "font-medium text-foreground" : "text-muted-foreground"}`}>{item.label}</span>;
 
         if (item.href && !isLast) {
           return (
-            <Link
-              key={item.label}
-              href={item.href}
-              style={{ textDecoration: "none" }}
-              className="header-breadcrumb-link"
-            >
-              {label}
-            </Link>
+            <span key={item.label} className="flex min-w-0 items-center gap-1.5">
+              <Link href={item.href} className="min-w-0 transition-colors hover:text-foreground">{label}</Link>
+              <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
+            </span>
           );
         }
         return <span key={item.label}>{label}</span>;
       })}
-    </MuiBreadcrumbs>
+    </nav>
   );
 }

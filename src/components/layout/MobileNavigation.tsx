@@ -1,6 +1,6 @@
 "use client";
 
-import Drawer from "@mui/material/Drawer";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Sidebar } from "./Sidebar";
 
 interface MobileNavigationProps {
@@ -10,16 +10,10 @@ interface MobileNavigationProps {
 
 export function MobileNavigation({ open, onClose }: MobileNavigationProps) {
   return (
-    <Drawer
-      open={open}
-      onClose={onClose}
-      ModalProps={{ keepMounted: true }}
-      sx={{
-        display: { xs: "block", md: "none" },
-        "& .MuiDrawer-paper": { width: 280, boxSizing: "border-box" },
-      }}
-    >
-      <Sidebar onNavigate={onClose} />
-    </Drawer>
+    <Sheet open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <SheetContent side="left" className="w-[17.5rem] border-sidebar-border bg-sidebar p-0 sm:max-w-none" showCloseButton={false}>
+        <Sidebar onNavigate={onClose} />
+      </SheetContent>
+    </Sheet>
   );
 }

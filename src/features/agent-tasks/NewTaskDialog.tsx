@@ -5,17 +5,12 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
 import { Plus } from "lucide-react";
-
-import { createAgentTask } from "@/services/agentTaskService";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import type { Device } from "@/types";
 
 const schema = z.object({
@@ -27,18 +22,19 @@ type Values = z.infer<typeof schema>;
 export function NewTaskDialog({ devices }: { devices: Device[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const {
-    control,
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<Values>({ resolver: zodResolver(schema) });
+  const { control, register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Values>({
+    resolver: zodResolver(schema),
+  });
 
   const onSubmit = async (values: Values) => {
     const device = devices.find((d) => d.id === values.deviceId);
     if (!device) return;
-    await createAgentTask({ deviceId: device.id, deviceName: device.name, instruction: values.instruction });
+    const response = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-mcp-csrf": "1" },
+      body: JSON.stringify({ deviceId: device.id, deviceName: device.name, instruction: values.instruction }),
+    });
+    if (!response.ok) throw new Error("Unable to create the task.");
     reset();
     setOpen(false);
     router.refresh();
@@ -46,53 +42,42 @@ export function NewTaskDialog({ devices }: { devices: Device[] }) {
 
   return (
     <>
-      <Button
-        variant="contained"
-        startIcon={<Plus size={18} />}
-        onClick={() => setOpen(true)}
-        sx={{ height: { sm: 40, md: 44 }, borderRadius: "var(--radius-md)", px: 2.25, boxShadow: "none", whiteSpace: "nowrap", "&:hover": { boxShadow: "none" } }}
-      >
-        Create Task
-      </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Send an agent task</DialogTitle>
-        <Stack component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-          <DialogContent>
-            <Stack spacing={2.5}>
+      <Button size="lg" className="h-10 rounded-xl px-4" onClick={() => setOpen(true)}><Plus size={18} />Create Task</Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send an agent task</DialogTitle>
+            <DialogDescription>Choose a paired device and describe the approved task.</DialogDescription>
+          </DialogHeader>
+          <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+            <div className="space-y-2">
+              <Label>Device</Label>
               <Controller
                 control={control}
                 name="deviceId"
                 defaultValue=""
                 render={({ field }) => (
-                  <TextField {...field} select label="Device" error={!!errors.deviceId} helperText={errors.deviceId?.message} fullWidth>
-                    {devices.map((device) => (
-                      <MenuItem key={device.id} value={device.id}>
-                        {device.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="Select a device" /></SelectTrigger>
+                    <SelectContent>
+                      {devices.map((device) => <SelectItem key={device.id} value={device.id}>{device.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 )}
               />
-              <TextField
-                label="Instruction"
-                multiline
-                minRows={2}
-                fullWidth
-                {...register("instruction")}
-                error={!!errors.instruction}
-                helperText={errors.instruction?.message}
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2.5 }}>
-            <Button onClick={() => setOpen(false)} color="inherit">
-              Cancel
-            </Button>
-            <Button type="submit" variant="contained" disabled={isSubmitting}>
-              {isSubmitting ? "Sending…" : "Send task"}
-            </Button>
-          </DialogActions>
-        </Stack>
+              {errors.deviceId && <p className="text-xs text-destructive">{errors.deviceId.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="task-instruction">Instruction</Label>
+              <Textarea id="task-instruction" rows={3} aria-invalid={!!errors.instruction} {...register("instruction")} />
+              {errors.instruction && <p className="text-xs text-destructive">{errors.instruction.message}</p>}
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Sending…" : "Send task"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
       </Dialog>
     </>
   );

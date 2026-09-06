@@ -1,42 +1,39 @@
 "use client";
 
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import { MonitorCog, Moon, Sun } from "lucide-react";
-import { useColorScheme } from "@mui/material/styles";
-
+import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui";
+import { useColorMode } from "@/hooks/useColorMode";
+
+const modes = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "system", label: "System", icon: MonitorCog },
+  { value: "dark", label: "Dark", icon: Moon },
+] as const;
 
 export function AppearanceSettings() {
-  const { mode, setMode } = useColorScheme();
+  const { mode, setMode } = useColorMode();
 
   return (
     <SectionCard title="Appearance" subtitle="Choose how My Agent Platform looks on this device.">
-      <Stack spacing={2}>
-        <Typography variant="body2" sx={{
-          color: "text.secondary"
-        }}>
-          Theme
-        </Typography>
-        <ToggleButtonGroup
-          value={mode ?? "system"}
-          exclusive
-          onChange={(_, value) => value && setMode(value)}
-          aria-label="Color mode"
-        >
-          <ToggleButton value="light" aria-label="Light mode">
-            <Sun size={18} style={{ marginRight: 8 }} /> Light
-          </ToggleButton>
-          <ToggleButton value="system" aria-label="System mode">
-            <MonitorCog size={18} style={{ marginRight: 8 }} /> System
-          </ToggleButton>
-          <ToggleButton value="dark" aria-label="Dark mode">
-            <Moon size={18} style={{ marginRight: 8 }} /> Dark
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Stack>
+      <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">Theme</p>
+        <div className="inline-flex w-full rounded-xl bg-muted p-1 sm:w-auto">
+          {modes.map(({ value, label, icon: Icon }) => (
+            <Button
+              key={value}
+              variant={mode === value ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setMode(value)}
+              className="flex-1 rounded-lg sm:flex-none"
+              aria-pressed={mode === value}
+            >
+              <Icon size={16} />
+              {label}
+            </Button>
+          ))}
+        </div>
+      </div>
     </SectionCard>
   );
 }

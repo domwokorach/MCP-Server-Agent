@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
-import Card from "@mui/material/Card";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Stack from "@mui/material/Stack";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
+import { cn } from "@/lib/utils";
 
 interface SectionCardProps {
   title?: string;
@@ -10,47 +8,22 @@ interface SectionCardProps {
   action?: ReactNode;
   children: ReactNode;
   noPadding?: boolean;
+  className?: string;
 }
 
-export function SectionCard({ title, subtitle, action, children, noPadding }: SectionCardProps) {
+export function SectionCard({ title, subtitle, action, children, noPadding, className }: SectionCardProps) {
   return (
-    <Card sx={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
+    <Card className={cn("rounded-2xl border border-border bg-card py-0 shadow-sm", className)}>
       {(title || action) && (
-        <Stack
-          direction="row"
-          sx={{
-            alignItems: "center",
-            justifyContent: "space-between",
-            px: { xs: 2.5, sm: 4 },
-            pt: { xs: 2.5, sm: 3.5 },
-            pb: subtitle ? 0.5 : 2.5
-          }}>
-          <Box>
-            {title && (
-              <Typography variant="h6" component="h2">
-                {title}
-              </Typography>
-            )}
-            {subtitle && (
-              <Typography variant="body2" sx={{
-                color: "text.secondary"
-              }}>
-                {subtitle}
-              </Typography>
-            )}
-          </Box>
-          {action}
-        </Stack>
+        <CardHeader className="px-5 pt-5 sm:px-6 sm:pt-6">
+          {title && <CardTitle>{title}</CardTitle>}
+          {subtitle && <CardDescription>{subtitle}</CardDescription>}
+          {action && <CardAction>{action}</CardAction>}
+        </CardHeader>
       )}
-      <Box
-        sx={{
-          px: noPadding ? 0 : { xs: 2.5, sm: 4 },
-          pb: noPadding ? 0 : { xs: 2.5, sm: 4 },
-          pt: title ? 1.5 : { xs: 2.5, sm: 4 },
-        }}
-      >
+      <CardContent className={noPadding ? "px-0 pb-0" : "px-5 pb-5 sm:px-6 sm:pb-6"}>
         {children}
-      </Box>
+      </CardContent>
     </Card>
   );
 }

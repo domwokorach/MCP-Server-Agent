@@ -4,26 +4,22 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Alert from "@mui/material/Alert";
 import Link from "next/link";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
-
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { login } from "@/services/authService";
 import { loginSchema, type LoginValues } from "./schemas";
 
 export function LoginForm() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginValues>({ resolver: zodResolver(loginSchema) });
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+  });
 
   const onSubmit = async (values: LoginValues) => {
     setServerError(null);
@@ -37,52 +33,35 @@ export function LoginForm() {
 
   return (
     <SectionCard title="Sign in" subtitle="Welcome back — manage your devices and agents.">
-      <Stack component="form" spacing={2.5} onSubmit={handleSubmit(onSubmit)} noValidate>
-        {serverError && <Alert severity="error">{serverError}</Alert>}
-        <TextField
-          label="Email"
-          type="email"
-          autoComplete="email"
-          fullWidth
-          {...register("email")}
-          error={!!errors.email}
-          helperText={errors.email?.message}
-        />
-        <TextField
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          fullWidth
-          {...register("password")}
-          error={!!errors.password}
-          helperText={errors.password?.message}
-        />
-        <Stack direction="row" sx={{
-          justifyContent: "flex-end"
-        }}>
-          <Link href="/forgot-password" style={{ fontSize: "0.8125rem" }}>
-            Forgot password?
-          </Link>
-        </Stack>
-        <Button type="submit" variant="contained" size="large" disabled={isSubmitting} fullWidth>
+      <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        {serverError && <Alert variant="destructive"><AlertDescription>{serverError}</AlertDescription></Alert>}
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" autoComplete="email" aria-invalid={!!errors.email} {...register("email")} />
+          {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="password">Password</Label>
+            <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">Forgot password?</Link>
+          </div>
+          <Input id="password" type="password" autoComplete="current-password" aria-invalid={!!errors.password} {...register("password")} />
+          {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+        </div>
+        <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Signing in…" : "Sign in"}
         </Button>
-        <Divider flexItem>or</Divider>
-        <Button href="/api/auth/google" variant="outlined" size="large" fullWidth>
-          Continue with Google
-        </Button>
-        <Button href="/api/auth/github" variant="outlined" size="large" fullWidth>
-          Continue with GitHub
-        </Button>
-        <Typography
-          variant="body2"
-          sx={{
-            color: "text.secondary",
-            textAlign: "center"
-          }}>
-          Don&apos;t have an account? <Link href="/register">Create one</Link>
-        </Typography>
-      </Stack>
+        <div className="relative py-1 text-center text-xs text-muted-foreground before:absolute before:inset-x-0 before:top-1/2 before:border-t before:border-border">
+          <span className="relative bg-card px-3">or continue with</span>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <a href="/api/auth/google" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full")}>Google</a>
+          <a href="/api/auth/github" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full")}>GitHub</a>
+        </div>
+        <p className="text-center text-sm text-muted-foreground">
+          Don&apos;t have an account? <Link href="/register" className="font-medium text-primary hover:underline">Create one</Link>
+        </p>
+      </form>
     </SectionCard>
   );
 }

@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import Alert from "@mui/material/Alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui";
 import { getCurrentUser, logout, updateProfile } from "@/services/authService";
 import type { User } from "@/types";
@@ -39,38 +39,27 @@ export function ProfileSettings() {
   };
 
   if (!user) return null;
+  const initials = user.fullName.split(" ").map((part) => part[0]).join("");
 
   return (
     <SectionCard title="Profile" subtitle="Your account information.">
-      <Stack direction="row" spacing={2.5} sx={{ alignItems: "center", mb: 2.5 }}>
-        <Avatar sx={{ width: 56, height: 56, fontSize: "1.25rem" }}>
-          {user.fullName
-            .split(" ")
-            .map((part) => part[0])
-            .join("")}
+      <div className="space-y-5">
+        <Avatar className="size-14">
+          <AvatarFallback className="bg-primary text-lg font-semibold text-primary-foreground">{initials}</AvatarFallback>
         </Avatar>
-      </Stack>
-      <Stack spacing={2.5}>
-        {status === "saved" && <Alert severity="success">Profile updated.</Alert>}
-        {status === "error" && <Alert severity="error">Unable to save changes.</Alert>}
-        <TextField label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} fullWidth />
-        <TextField label="Email" defaultValue={user.email} fullWidth disabled />
-        <TextField label="Address" value={address} onChange={(e) => setAddress(e.target.value)} fullWidth />
-        <TextField label="Role" defaultValue={user.role} fullWidth disabled />
-        <Stack direction="row" spacing={1.5}>
-          <Button variant="contained" onClick={handleSave} disabled={status === "saving"}>
-            Save changes
-          </Button>
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={() => void logout().then(() => router.push("/login"))}
-          >
-            Sign out
-          </Button>
-        </Stack>
-      </Stack>
+        {status === "saved" && <Alert className="border-success/30 bg-success/10 text-success"><AlertDescription className="text-success">Profile updated.</AlertDescription></Alert>}
+        {status === "error" && <Alert variant="destructive"><AlertDescription>Unable to save changes.</AlertDescription></Alert>}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-2"><Label htmlFor="full-name">Full name</Label><Input id="full-name" value={fullName} onChange={(e) => setFullName(e.target.value)} /></div>
+          <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" value={user.email} disabled /></div>
+          <div className="space-y-2"><Label htmlFor="address">Address</Label><Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
+          <div className="space-y-2"><Label htmlFor="role">Role</Label><Input id="role" value={user.role} disabled /></div>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={handleSave} disabled={status === "saving"}>{status === "saving" ? "Saving…" : "Save changes"}</Button>
+          <Button variant="outline" onClick={() => void logout().then(() => router.push("/login"))}>Sign out</Button>
+        </div>
+      </div>
     </SectionCard>
   );
 }
-

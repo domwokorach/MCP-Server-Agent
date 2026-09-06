@@ -1,6 +1,4 @@
-import Typography from "@mui/material/Typography";
 import { Bot } from "lucide-react";
-
 import { SectionCard, StatusChip, EmptyState, ResponsiveTable } from "@/components/ui";
 import type { ResponsiveTableColumn } from "@/components/ui";
 import { listAgentTasks } from "@/services/agentTaskService";
@@ -13,51 +11,21 @@ export async function AgentTasksList() {
   if (tasks.length === 0) {
     return (
       <SectionCard>
-        <EmptyState
-          icon={<Bot size="inherit" />}
-          title="No agent tasks yet"
-          description="Send your first instruction to a device to see it here."
-        />
+        <EmptyState icon={<Bot />} title="No agent tasks yet" description="Send your first instruction to a device to see it here." />
       </SectionCard>
     );
   }
 
   const columns: ResponsiveTableColumn<AgentTask>[] = [
-    {
-      key: "instruction",
-      header: "Instruction",
-      render: (task) => (
-        <Typography variant="body2" sx={{
-          fontWeight: 600
-        }}>
-          {task.instruction}
-        </Typography>
-      ),
-    },
+    { key: "instruction", header: "Instruction", render: (task) => <span className="font-medium">{task.instruction}</span> },
     { key: "device", header: "Device", render: (task) => task.deviceName },
     { key: "status", header: "Status", render: (task) => <StatusChip status={task.status} /> },
-    {
-      key: "createdAt",
-      header: "Created",
-      hideOnMobile: true,
-      render: (task) => (
-        <Typography variant="body2" sx={{
-          color: "text.secondary"
-        }}>
-          {formatDateTime(task.createdAt)}
-        </Typography>
-      ),
-    },
+    { key: "createdAt", header: "Created", hideOnMobile: true, render: (task) => <span className="text-muted-foreground">{formatDateTime(task.createdAt)}</span> },
   ];
 
   return (
     <SectionCard noPadding>
-      <ResponsiveTable
-        columns={columns}
-        rows={tasks}
-        getRowKey={(task) => task.id}
-        mobileTitle={(task) => task.instruction}
-      />
+      <ResponsiveTable columns={columns} rows={tasks} getRowKey={(task) => task.id} mobileTitle={(task) => task.instruction} />
     </SectionCard>
   );
 }

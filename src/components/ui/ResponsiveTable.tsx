@@ -1,14 +1,6 @@
 import type { ReactNode } from "react";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Stack from "@mui/material/Stack";
-import Card from "@mui/material/Card";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
+import { Card, CardContent } from "./card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./table";
 
 export interface ResponsiveTableColumn<T> {
   key: string;
@@ -28,59 +20,47 @@ interface ResponsiveTableProps<T> {
 export function ResponsiveTable<T>({ columns, rows, getRowKey, mobileTitle }: ResponsiveTableProps<T>) {
   return (
     <>
-      <Box sx={{ display: { xs: "none", sm: "block" } }}>
-        <TableContainer sx={{ overflowX: "auto" }}>
-          <Table size="small">
-            <TableHead>
+      <div className="hidden sm:block">
+        <Table>
+          <TableHeader>
               <TableRow>
                 {columns.map((col) => (
-                  <TableCell key={col.key} align={col.align ?? "left"}>
+                  <TableHead key={col.key} className={col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : ""}>
                     {col.header}
-                  </TableCell>
+                  </TableHead>
                 ))}
               </TableRow>
-            </TableHead>
-            <TableBody>
+          </TableHeader>
+          <TableBody>
               {rows.map((row) => (
-                <TableRow key={getRowKey(row)} hover>
+                <TableRow key={getRowKey(row)}>
                   {columns.map((col) => (
-                    <TableCell key={col.key} align={col.align ?? "left"}>
+                    <TableCell key={col.key} className={col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : ""}>
                       {col.render(row)}
                     </TableCell>
                   ))}
                 </TableRow>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-      <Stack spacing={1.5} sx={{ display: { xs: "flex", sm: "none" } }}>
+          </TableBody>
+        </Table>
+      </div>
+      <div className="space-y-3 sm:hidden">
         {rows.map((row) => (
-          <Card key={getRowKey(row)} sx={{ p: 2, borderRadius: "var(--radius-md)" }}>
-            <Stack spacing={1}>
-              <Typography variant="subtitle2">{mobileTitle(row)}</Typography>
+          <Card key={getRowKey(row)} className="rounded-xl border border-border py-0 shadow-none">
+            <CardContent className="space-y-2 px-4 py-4">
+              <p className="font-medium">{mobileTitle(row)}</p>
               {columns
                 .filter((col) => !col.hideOnMobile)
                 .map((col) => (
-                  <Stack
-                    key={col.key}
-                    direction="row"
-                    sx={{
-                      justifyContent: "space-between",
-                      alignItems: "center"
-                    }}>
-                    <Typography variant="caption" sx={{
-                      color: "text.secondary"
-                    }}>
-                      {col.header}
-                    </Typography>
-                    <Box sx={{ textAlign: "right" }}>{col.render(row)}</Box>
-                  </Stack>
+                  <div key={col.key} className="flex items-center justify-between gap-4 text-sm">
+                    <span className="text-xs text-muted-foreground">{col.header}</span>
+                    <span className="min-w-0 text-right">{col.render(row)}</span>
+                  </div>
                 ))}
-            </Stack>
+            </CardContent>
           </Card>
         ))}
-      </Stack>
+      </div>
     </>
   );
 }

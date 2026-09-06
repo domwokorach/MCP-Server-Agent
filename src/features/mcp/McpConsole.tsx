@@ -1,16 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Grid from "@mui/material/Grid";
-import IconButton from "@mui/material/IconButton";
-import Stack from "@mui/material/Stack";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
 import { Bot, Copy, MemoryStick, MonitorSmartphone, Play, RefreshCw, RotateCcw, Square, Trash2, Wrench } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { MetricCard, SectionCard, StatusChip, LinkButton } from "@/components/ui";
 import type { McpLogEntry, McpRuntimeStatus } from "@/services/mcpRuntimeService";
 import { McpTerminal } from "./McpTerminal";
@@ -23,26 +18,23 @@ interface McpOverview {
 }
 
 const initialStatus: McpRuntimeStatus = {
-  state: "offline",
-  apiStatus: "online",
-  websocketStatus: "SSE connected",
-  uptimeSeconds: 0,
-  pid: null,
-  transport: "STDIO + Streamable HTTP",
-  endpoint: "/api/mcp",
-  connectedClients: 0,
-  activeAgents: 0,
-  connectedDevices: 0,
-  toolCount: 9,
-  requestCount: 0,
-  errorCount: 0,
-  memoryBytes: 0,
-  controlsEnabled: false,
+  state: "offline", apiStatus: "online", websocketStatus: "SSE connected", uptimeSeconds: 0, pid: null,
+  transport: "STDIO + Streamable HTTP", endpoint: "/api/mcp", connectedClients: 0, activeAgents: 0,
+  connectedDevices: 0, toolCount: 9, requestCount: 0, errorCount: 0, memoryBytes: 0, controlsEnabled: false,
 };
 
 function formatUptime(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   return `${minutes}m ${seconds % 60}s`;
+}
+
+function IconAction({ label, onClick, disabled, children }: { label: string; onClick: () => void; disabled?: boolean; children: React.ReactNode }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger render={<Button variant="outline" size="icon" aria-label={label} onClick={onClick} disabled={disabled} />}>{children}</TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
 }
 
 export function McpConsole() {
@@ -54,9 +46,7 @@ export function McpConsole() {
 
   const refresh = useCallback(async () => {
     const [statusResponse, logsResponse, overviewResponse] = await Promise.all([
-      fetch("/api/mcp/status"),
-      fetch("/api/system/logs"),
-      fetch("/api/mcp/overview"),
+      fetch("/api/mcp/status"), fetch("/api/system/logs"), fetch("/api/mcp/overview"),
     ]);
     if (!statusResponse.ok || !logsResponse.ok) throw new Error("Unable to load MCP management data.");
     setStatus(await statusResponse.json());
@@ -93,106 +83,75 @@ export function McpConsole() {
   };
 
   return (
-    <Stack spacing={2.5}>
-      {message && <Alert severity={message.includes("copied") ? "success" : "info"} onClose={() => setMessage(undefined)}>{message}</Alert>}
-      <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ alignItems: { md: "center" }, justifyContent: "space-between" }}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+    <div className="space-y-5">
+      {message && (
+        <Alert className={message.includes("copied") ? "border-success/30 bg-success/10 text-success" : ""} variant={message.includes("copied") ? "default" : "destructive"}>
+          <AlertDescription className={message.includes("copied") ? "text-success" : ""}>{message}</AlertDescription>
+          <Button variant="ghost" size="icon-xs" className="absolute top-2 right-2" onClick={() => setMessage(undefined)} aria-label="Dismiss message">×</Button>
+        </Alert>
+      )}
+      <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
+        <div className="flex flex-wrap items-center gap-2">
           <StatusChip status={status.state} />
-          <Chip label="API online" color="success" size="small" variant="outlined" />
-          <Chip label={status.websocketStatus} color="info" size="small" variant="outlined" />
-        </Stack>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
-          <Button variant="contained" startIcon={<Play size={20} />} disabled={!status.controlsEnabled || status.state === "online" || Boolean(pending)} onClick={() => void control("start")}>Start server</Button>
-          <Button variant="outlined" color="inherit" startIcon={<Square size={20} />} disabled={!status.controlsEnabled || status.state === "offline" || Boolean(pending)} onClick={() => void control("stop")}>Stop</Button>
-          <Button variant="outlined" startIcon={<RotateCcw size={20} />} disabled={!status.controlsEnabled || Boolean(pending)} onClick={() => void control("restart")}>Restart</Button>
-          <Tooltip title="Copy MCP URL"><IconButton aria-label="Copy MCP URL" onClick={() => void copyEndpoint()}><Copy size={20} /></IconButton></Tooltip>
-          <Tooltip title="Refresh"><IconButton aria-label="Refresh MCP status" onClick={() => void refresh()}><RefreshCw size={20} /></IconButton></Tooltip>
-        </Stack>
-      </Stack>
+          <Badge variant="outline" className="border-success/30 bg-success/10 text-success">API online</Badge>
+          <Badge variant="outline" className="border-info/30 bg-info/10 text-info">{status.websocketStatus}</Badge>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button disabled={!status.controlsEnabled || status.state === "online" || Boolean(pending)} onClick={() => void control("start")}><Play size={17} />Start server</Button>
+          <Button variant="outline" disabled={!status.controlsEnabled || status.state === "offline" || Boolean(pending)} onClick={() => void control("stop")}><Square size={17} />Stop</Button>
+          <Button variant="outline" disabled={!status.controlsEnabled || Boolean(pending)} onClick={() => void control("restart")}><RotateCcw size={17} />Restart</Button>
+          <IconAction label="Copy MCP URL" onClick={() => void copyEndpoint()}><Copy size={17} /></IconAction>
+          <IconAction label="Refresh MCP status" onClick={() => void refresh()}><RefreshCw size={17} /></IconAction>
+        </div>
+      </div>
 
-      <Grid container spacing={2.5}>
-        <Grid size={{ xs: 6, md: 3 }}><MetricCard label="Connected devices" value={status.connectedDevices} icon={<MonitorSmartphone size={24} />} /></Grid>
-        <Grid size={{ xs: 6, md: 3 }}><MetricCard label="Active agents" value={status.activeAgents} icon={<Bot size={24} />} /></Grid>
-        <Grid size={{ xs: 6, md: 3 }}><MetricCard label="MCP tools" value={status.toolCount} icon={<Wrench size={24} />} /></Grid>
-        <Grid size={{ xs: 6, md: 3 }}><MetricCard label="Memory" value={`${Math.round(status.memoryBytes / 1024 / 1024)} MB`} icon={<MemoryStick size={24} />} /></Grid>
-        <Grid size={{ xs: 12, lg: 5 }}>
-          <SectionCard title="Server details" subtitle="Streamable HTTP endpoint with a managed STDIO worker.">
-            <Stack spacing={1.5}>
-              {[
-                ["MCP endpoint", status.endpoint],
-                ["Transport", status.transport],
-                ["Uptime", formatUptime(status.uptimeSeconds)],
-                ["PID", status.pid?.toString() ?? "Not running"],
-                ["Connected clients", status.connectedClients.toString()],
-                ["Requests / errors", `${status.requestCount} / ${status.errorCount}`],
-              ].map(([label, value]) => (
-                <Stack key={label} direction="row" sx={{ justifyContent: "space-between", gap: 2 }}>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>{label}</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, textAlign: "right", wordBreak: "break-word" }}>{value}</Typography>
-                </Stack>
-              ))}
-            </Stack>
-          </SectionCard>
-        </Grid>
-        <Grid size={{ xs: 12, lg: 7 }}>
-          <SectionCard title="Live terminal" subtitle="Read-only operational events with secret redaction." action={<Tooltip title="Clear logs"><IconButton aria-label="Clear logs" size="small" disabled={Boolean(pending)} onClick={() => void control("clear")}><Trash2 size={20} /></IconButton></Tooltip>} noPadding>
-            <McpTerminal logs={logs} />
-          </SectionCard>
-        </Grid>
-      </Grid>
-      {!status.controlsEnabled && <Alert severity="warning">Set MCP_MANAGEMENT_TOKEN before enabling production management controls.</Alert>}
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="Connected devices" value={status.connectedDevices} icon={<MonitorSmartphone size={21} />} />
+        <MetricCard label="Active agents" value={status.activeAgents} icon={<Bot size={21} />} />
+        <MetricCard label="MCP tools" value={status.toolCount} icon={<Wrench size={21} />} />
+        <MetricCard label="Memory" value={`${Math.round(status.memoryBytes / 1024 / 1024)} MB`} icon={<MemoryStick size={21} />} />
+        <SectionCard title="Server details" subtitle="Streamable HTTP endpoint with a managed STDIO worker." className="xl:col-span-2">
+          <dl className="divide-y divide-border">
+            {[
+              ["MCP endpoint", status.endpoint], ["Transport", status.transport], ["Uptime", formatUptime(status.uptimeSeconds)],
+              ["PID", status.pid?.toString() ?? "Not running"], ["Connected clients", status.connectedClients.toString()],
+              ["Requests / errors", `${status.requestCount} / ${status.errorCount}`],
+            ].map(([label, value]) => (
+              <div key={label} className="flex justify-between gap-5 py-3 first:pt-0 last:pb-0">
+                <dt className="text-sm text-muted-foreground">{label}</dt><dd className="break-all text-right font-mono text-xs font-medium">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </SectionCard>
+        <SectionCard title="Live terminal" subtitle="Read-only operational events with secret redaction." className="sm:col-span-2 xl:col-span-2" action={<IconAction label="Clear logs" disabled={Boolean(pending)} onClick={() => void control("clear")}><Trash2 size={16} /></IconAction>} noPadding>
+          <McpTerminal logs={logs} />
+        </SectionCard>
+      </div>
+      {!status.controlsEnabled && <Alert><AlertDescription>Set MCP_MANAGEMENT_TOKEN before enabling production management controls.</AlertDescription></Alert>}
 
       {overview && (
-        <SectionCard
-          title="Security & tool health"
-          subtitle="Gateway activity across every registered MCP tool."
-          action={<LinkButton href="/dashboard/mcp/tools">Manage tools</LinkButton>}
-        >
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <MetricCard label="Enabled tools" value={`${overview.tools.enabled}/${overview.tools.total}`} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <MetricCard label="Tool requests" value={overview.tools.requests} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <MetricCard label="Failed requests" value={overview.tools.errors} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <MetricCard label="Active sessions" value={overview.security.activeSessions} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <MetricCard label="Connected agents" value={overview.security.connectedAgents} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <MetricCard label="Rate-limit events" value={overview.security.rateLimitEvents} />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <MetricCard label="Terminal events" value={overview.terminal.events} />
-            </Grid>
-          </Grid>
-          <Stack spacing={1} sx={{ mt: 2.5 }}>
-            <Typography variant="subtitle2">Recent audit activity</Typography>
-            {overview.recentAudit.length === 0 && (
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>No activity recorded yet.</Typography>
-            )}
+        <SectionCard title="Security & tool health" subtitle="Gateway activity across every registered MCP tool." action={<LinkButton href="/dashboard/mcp/tools">Manage tools</LinkButton>}>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <MetricCard label="Enabled tools" value={`${overview.tools.enabled}/${overview.tools.total}`} />
+            <MetricCard label="Tool requests" value={overview.tools.requests} />
+            <MetricCard label="Failed requests" value={overview.tools.errors} />
+            <MetricCard label="Active sessions" value={overview.security.activeSessions} />
+            <MetricCard label="Connected agents" value={overview.security.connectedAgents} />
+            <MetricCard label="Rate-limit events" value={overview.security.rateLimitEvents} />
+            <MetricCard label="Terminal events" value={overview.terminal.events} />
+          </div>
+          <div className="mt-6 space-y-3">
+            <p className="text-sm font-medium">Recent audit activity</p>
+            {overview.recentAudit.length === 0 && <p className="text-sm text-muted-foreground">No activity recorded yet.</p>}
             {overview.recentAudit.map((entry) => (
-              <Stack key={entry.id} direction="row" sx={{ justifyContent: "space-between", gap: 2 }}>
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                  {entry.action} · {entry.actorType}
-                </Typography>
-                <Chip
-                  label={entry.success ? "ok" : "failed"}
-                  color={entry.success ? "success" : "error"}
-                  size="small"
-                  variant="outlined"
-                />
-              </Stack>
+              <div key={entry.id} className="flex items-center justify-between gap-4 border-t border-border pt-3">
+                <p className="text-sm text-muted-foreground">{entry.action} · {entry.actorType}</p>
+                <Badge variant="outline" className={entry.success ? "border-success/30 bg-success/10 text-success" : "border-destructive/30 bg-destructive/10 text-destructive"}>{entry.success ? "ok" : "failed"}</Badge>
+              </div>
             ))}
-          </Stack>
+          </div>
         </SectionCard>
       )}
-      <Box sx={{ display: "none" }} aria-hidden />
-    </Stack>
+    </div>
   );
 }

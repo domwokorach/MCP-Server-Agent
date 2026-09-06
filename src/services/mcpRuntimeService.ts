@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
 import path from "node:path";
 import { MCP_TOOL_COUNT } from "../../apps/mcp/src/server/create-server";
+import { publishRealtimeEvent } from "@/lib/realtime";
 
 export interface McpLogEntry {
   id: string;
@@ -80,7 +81,7 @@ export const mcpRuntime = {
       uptimeSeconds: online && store.startedAt ? Math.floor((Date.now() - store.startedAt) / 1_000) : 0,
       pid: online ? store.child?.pid ?? null : null,
       transport: "STDIO + Streamable HTTP",
-      endpoint: "/api/mcp",
+      endpoint: "/mcp",
       connectedClients: 0,
       activeAgents: 1,
       connectedDevices: 4,
@@ -129,6 +130,7 @@ export const mcpRuntime = {
 
   recordRequest() {
     store.requestCount += 1;
+    publishRealtimeEvent("mcp.status", this.getStatus());
     store.events.emit("update");
   },
 

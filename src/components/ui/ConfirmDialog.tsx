@@ -1,11 +1,15 @@
 "use client";
 
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./alert-dialog";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -31,27 +35,25 @@ export function ConfirmDialog({
   onClose,
 }: ConfirmDialogProps) {
   return (
-    <Dialog open={open} onClose={onClose} aria-labelledby="confirm-dialog-title" maxWidth="xs" fullWidth>
-      <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
-      {description && (
-        <DialogContent>
-          <DialogContentText>{description}</DialogContentText>
-        </DialogContent>
-      )}
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        <Button onClick={onClose} color="inherit">
+    <AlertDialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onClose}>
           {cancelLabel}
-        </Button>
-        <Button
+          </AlertDialogCancel>
+          <AlertDialogAction
           onClick={onConfirm}
-          variant="contained"
-          color={destructive ? "error" : "primary"}
+          variant={destructive ? "destructive" : "default"}
           disabled={loading}
-          autoFocus
         >
           {confirmLabel}
-        </Button>
-      </DialogActions>
-    </Dialog>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Alert from "@mui/material/Alert";
-
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { createAgentTask } from "@/services/agentTaskService";
 import { sendTaskSchema, type SendTaskValues } from "./schemas";
 
@@ -18,12 +17,9 @@ interface SendTaskFormProps {
 
 export function SendTaskForm({ deviceId, deviceName }: SendTaskFormProps) {
   const [success, setSuccess] = useState<string | null>(null);
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<SendTaskValues>({ resolver: zodResolver(sendTaskSchema) });
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<SendTaskValues>({
+    resolver: zodResolver(sendTaskSchema),
+  });
 
   const onSubmit = async (values: SendTaskValues) => {
     setSuccess(null);
@@ -33,21 +29,14 @@ export function SendTaskForm({ deviceId, deviceName }: SendTaskFormProps) {
   };
 
   return (
-    <Stack component="form" spacing={2} onSubmit={handleSubmit(onSubmit)} noValidate>
-      {success && <Alert severity="success">{success}</Alert>}
-      <TextField
-        label="Instruction"
-        placeholder="e.g. Turn off at midnight every night"
-        multiline
-        minRows={2}
-        fullWidth
-        {...register("instruction")}
-        error={!!errors.instruction}
-        helperText={errors.instruction?.message}
-      />
-      <Button type="submit" variant="contained" disabled={isSubmitting} sx={{ alignSelf: "flex-start" }}>
-        {isSubmitting ? "Sending…" : "Send task"}
-      </Button>
-    </Stack>
+    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+      {success && <Alert className="border-success/30 bg-success/10 text-success"><AlertDescription className="text-success">{success}</AlertDescription></Alert>}
+      <div className="space-y-2">
+        <Label htmlFor="instruction">Instruction</Label>
+        <Textarea id="instruction" placeholder="e.g. Turn off at midnight every night" rows={3} aria-invalid={!!errors.instruction} {...register("instruction")} />
+        {errors.instruction && <p className="text-xs text-destructive">{errors.instruction.message}</p>}
+      </div>
+      <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Sending…" : "Send task"}</Button>
+    </form>
   );
 }

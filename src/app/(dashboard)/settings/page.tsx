@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Stack from "@mui/material/Stack";
 import { DashboardHeader, PageContainer } from "@/components/layout";
 import { ProfileSettings } from "@/features/settings/ProfileSettings";
 import { AppearanceSettings } from "@/features/settings/AppearanceSettings";
@@ -16,11 +15,11 @@ export default function SettingsPage() {
         breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Settings" }]}
       />
       <PageContainer>
-        <Stack spacing={2.5}>
+        <div className="space-y-5">
           <ProfileSettings />
           <AppearanceSettings />
           <McpStatusSettings />
-        </Stack>
+        </div>
       </PageContainer>
     </>
   );

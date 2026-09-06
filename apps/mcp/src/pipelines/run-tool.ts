@@ -18,6 +18,7 @@ interface RunToolOptions {
   description: string;
   requiredRole: Role;
   input: unknown;
+  signal?: AbortSignal;
   execute: () => Promise<unknown>;
 }
 
@@ -29,7 +30,7 @@ interface RunToolOptions {
  * this themselves (see `server/gateway-tool.ts`).
  */
 export async function runToolPipeline(options: RunToolOptions): Promise<ToolCallOutcome> {
-  const { identity, name, description, requiredRole, input, execute } = options;
+  const { identity, name, description, requiredRole, input, signal, execute } = options;
   const identityKey = identity.userId ?? identity.label;
   const startedAt = Date.now();
 
@@ -63,7 +64,7 @@ export async function runToolPipeline(options: RunToolOptions): Promise<ToolCall
     const release = acquireConcurrencySlot(identityKey);
     let result: unknown;
     try {
-      result = await withTimeout(execute());
+      result = await withTimeout(execute(), undefined, signal);
     } finally {
       release();
     }

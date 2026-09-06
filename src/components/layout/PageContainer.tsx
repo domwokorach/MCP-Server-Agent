@@ -1,19 +1,9 @@
 import type { ReactNode } from "react";
-import Box from "@mui/material/Box";
 
 export function PageContainer({ children }: { children: ReactNode }) {
   return (
-    <Box
-      component="main"
-      sx={{
-        px: { xs: 2, sm: 3, lg: 4 },
-        py: { xs: 3, sm: 4, lg: 5 },
-        maxWidth: "var(--content-max-width)",
-        mx: "auto",
-        width: "100%",
-      }}
-    >
+    <main className="mx-auto w-full max-w-[var(--content-max-width)] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       {children}
-    </Box>
+    </main>
   );
 }

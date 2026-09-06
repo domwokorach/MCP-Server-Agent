@@ -33,7 +33,7 @@ export async function GET() {
   return NextResponse.json({
     mcp: mcpRuntime.getStatus(),
     stdio: { available: true, role: process.env.MCP_STDIO_ROLE || "developer" },
-    http: { endpoint: "/api/mcp", authenticated: true },
+    http: { endpoint: "/mcp", authenticated: true },
     terminal: { enabled: isTerminalEnabled(), events: terminalEvents },
     tools: { total: tools.length, enabled: tools.filter((t) => t.enabled).length, requests: toolRequests, errors: toolErrors },
     security: { activeSessions, connectedAgents: distinctAgents.length, rateLimitEvents: getRateLimitEventCount() },

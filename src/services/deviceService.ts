@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 
 import { mockDevices } from "@/lib/mock-data";
+import { publishRealtimeEvent } from "@/lib/realtime";
 import type { Device, DeviceStatus, DeviceType } from "@/types";
 
 export type DeviceAction = "connect" | "disconnect" | "reconnect" | "rename" | "remove";
@@ -54,6 +55,7 @@ export async function performDeviceAction(
   const device = mockDevices[index];
   if (action === "remove") {
     mockDevices.splice(index, 1);
+    publishRealtimeEvent("device.disconnected", { deviceId: id, name: device.name, removed: true });
     return { success: true, message: `${device.name} was removed from this console.`, removedId: id };
   }
 
@@ -63,6 +65,7 @@ export async function performDeviceAction(
       return { success: false, message: "Enter a device name between 1 and 80 characters." };
     }
     device.name = trimmedName;
+    publishRealtimeEvent("device.updated", { deviceId: id, name: device.name, status: device.status });
     return { success: true, message: "Device renamed.", device: { ...device } };
   }
 
@@ -84,6 +87,15 @@ export async function performDeviceAction(
   }
 
   const verb = action === "reconnect" ? "Reconnected" : action === "connect" ? "Connected" : "Disconnected";
+  publishRealtimeEvent(action === "disconnect" ? "device.disconnected" : "device.connected", {
+    deviceId: device.id,
+    name: device.name,
+    status: device.status,
+  });
+  publishRealtimeEvent(device.agentConnection === "connected" ? "agent.connected" : "agent.disconnected", {
+    deviceId: device.id,
+    name: device.name,
+  });
   return { success: true, message: `${verb} ${device.name}.`, device: { ...device } };
 }
 
@@ -131,5 +143,7 @@ export async function approvePairing(userId: string, code: string): Promise<Devi
     lastSeen: timestamp,
   };
   mockDevices.unshift(device);
+  publishRealtimeEvent("device.connected", { deviceId: device.id, name: device.name, status: device.status });
+  publishRealtimeEvent("agent.connected", { deviceId: device.id, name: device.name });
   return { success: true, message: `${device.name} is connected.`, device: { ...device } };
 }

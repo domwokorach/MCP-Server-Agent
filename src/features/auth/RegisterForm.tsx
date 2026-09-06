@@ -4,25 +4,29 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Alert from "@mui/material/Alert";
 import Link from "next/link";
-import Typography from "@mui/material/Typography";
-
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui";
 import { register as registerUser } from "@/services/authService";
 import { registerSchema, type RegisterValues } from "./schemas";
 
+const fields: Array<{ name: keyof RegisterValues; label: string; type?: string; autoComplete: string }> = [
+  { name: "fullName", label: "Full name", autoComplete: "name" },
+  { name: "email", label: "Email", type: "email", autoComplete: "email" },
+  { name: "address", label: "Address", autoComplete: "street-address" },
+  { name: "password", label: "Password", type: "password", autoComplete: "new-password" },
+  { name: "confirmPassword", label: "Confirm password", type: "password", autoComplete: "new-password" },
+];
+
 export function RegisterForm() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterValues>({ resolver: zodResolver(registerSchema) });
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterValues>({
+    resolver: zodResolver(registerSchema),
+  });
 
   const onSubmit = async (values: RegisterValues) => {
     setServerError(null);
@@ -36,63 +40,22 @@ export function RegisterForm() {
 
   return (
     <SectionCard title="Create your account" subtitle="Start pairing devices and orchestrating agents.">
-      <Stack component="form" spacing={2.5} onSubmit={handleSubmit(onSubmit)} noValidate>
-        {serverError && <Alert severity="error">{serverError}</Alert>}
-        <TextField
-          label="Full name"
-          autoComplete="name"
-          fullWidth
-          {...register("fullName")}
-          error={!!errors.fullName}
-          helperText={errors.fullName?.message}
-        />
-        <TextField
-          label="Email"
-          type="email"
-          autoComplete="email"
-          fullWidth
-          {...register("email")}
-          error={!!errors.email}
-          helperText={errors.email?.message}
-        />
-        <TextField
-          label="Address"
-          autoComplete="street-address"
-          fullWidth
-          {...register("address")}
-          error={!!errors.address}
-          helperText={errors.address?.message}
-        />
-        <TextField
-          label="Password"
-          type="password"
-          autoComplete="new-password"
-          fullWidth
-          {...register("password")}
-          error={!!errors.password}
-          helperText={errors.password?.message}
-        />
-        <TextField
-          label="Confirm password"
-          type="password"
-          autoComplete="new-password"
-          fullWidth
-          {...register("confirmPassword")}
-          error={!!errors.confirmPassword}
-          helperText={errors.confirmPassword?.message}
-        />
-        <Button type="submit" variant="contained" size="large" disabled={isSubmitting} fullWidth>
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+        {serverError && <Alert variant="destructive"><AlertDescription>{serverError}</AlertDescription></Alert>}
+        {fields.map(({ name, label, type = "text", autoComplete }) => (
+          <div className="space-y-2" key={name}>
+            <Label htmlFor={name}>{label}</Label>
+            <Input id={name} type={type} autoComplete={autoComplete} aria-invalid={!!errors[name]} {...register(name)} />
+            {errors[name] && <p className="text-xs text-destructive">{errors[name]?.message}</p>}
+          </div>
+        ))}
+        <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Creating account…" : "Create account"}
         </Button>
-        <Typography
-          variant="body2"
-          sx={{
-            color: "text.secondary",
-            textAlign: "center"
-          }}>
-          Already have an account? <Link href="/login">Sign in</Link>
-        </Typography>
-      </Stack>
+        <p className="text-center text-sm text-muted-foreground">
+          Already have an account? <Link href="/login" className="font-medium text-primary hover:underline">Sign in</Link>
+        </p>
+      </form>
     </SectionCard>
   );
 }

@@ -1,12 +1,5 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import Typography from "@mui/material/Typography";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "./nav-items";
@@ -23,71 +16,43 @@ export function Sidebar({ compact, onNavigate }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <Stack sx={{ height: "100%" }}>
-      <Box sx={{ px: compact ? 1.5 : 3, py: 3.5 }}>
-        <Stack
-          direction="row"
-          spacing={1.5}
-          sx={{
-            alignItems: "center",
-            justifyContent: compact ? "center" : "flex-start"
-          }}>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: "var(--radius-sm)",
-              bgcolor: "primary.main",
-              flexShrink: 0,
-            }}
-            aria-hidden
-          />
+    <div className="flex h-full flex-col">
+      <div className={compact ? "px-3 py-6" : "px-5 py-6"}>
+        <div className={`flex items-center gap-3 ${compact ? "justify-center" : ""}`}>
+          <div className="grid size-8 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm" aria-hidden>
+            <span className="size-2 rounded-sm bg-current" />
+          </div>
           {!compact && (
-            <Typography variant="subtitle1" noWrap sx={{
-              fontWeight: 700
-            }}>
+            <span className="truncate text-sm font-semibold tracking-tight text-sidebar-foreground">
               Agent Platform
-            </Typography>
+            </span>
           )}
-        </Stack>
-      </Box>
-      <List component="nav" aria-label="Primary" sx={{ px: compact ? 1 : 2, flex: 1 }}>
+        </div>
+      </div>
+      <nav aria-label="Primary" className={`flex flex-1 flex-col gap-1 ${compact ? "px-2" : "px-3"}`}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
-            <ListItemButton
+            <Link
               key={item.href}
-              component={Link}
               href={item.href}
               onClick={onNavigate}
-              selected={active}
-              sx={{
-                borderRadius: "var(--radius-sm)",
-                mb: 0.5,
-                minHeight: 48,
-                justifyContent: compact ? "center" : "flex-start",
-                px: compact ? 1.5 : 2,
-                "&.Mui-selected": {
-                  bgcolor: "action.selected",
-                  color: "primary.main",
-                  "& .MuiListItemIcon-root": { color: "primary.main" },
-                },
-              }}
+              title={compact ? item.label : undefined}
+              className={`flex min-h-11 items-center rounded-xl text-sm font-medium transition-colors ${
+                compact ? "justify-center px-3" : "gap-3 px-3"
+              } ${
+                active
+                  ? "bg-sidebar-accent text-sidebar-primary"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              }`}
             >
-              <ListItemIcon sx={{ minWidth: compact ? 0 : 36, justifyContent: "center" }}>
-                <Icon size={20} strokeWidth={2} />
-              </ListItemIcon>
-              {!compact && (
-                <ListItemText
-                  primary={item.label}
-                  slotProps={{ primary: { variant: "body2", sx: { fontWeight: active ? 600 : 500 } } }}
-                />
-              )}
-            </ListItemButton>
+              <Icon className="size-5 shrink-0" strokeWidth={2} />
+              {!compact && <span>{item.label}</span>}
+            </Link>
           );
         })}
-      </List>
-    </Stack>
+      </nav>
+    </div>
   );
 }

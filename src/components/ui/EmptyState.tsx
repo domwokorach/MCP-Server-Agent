@@ -1,7 +1,4 @@
 import type { ReactNode } from "react";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -12,33 +9,17 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <Stack
-      spacing={1.5}
-      sx={{
-        alignItems: "center",
-        textAlign: "center",
-        py: 6,
-        px: 3
-      }}>
+    <div className="flex flex-col items-center px-5 py-12 text-center">
       {icon && (
-        <Box sx={{ color: "text.secondary", fontSize: 40, lineHeight: 1 }} aria-hidden>
+        <div className="mb-4 text-muted-foreground [&>svg]:size-10" aria-hidden>
           {icon}
-        </Box>
+        </div>
       )}
-      <Typography variant="h6" component="p">
-        {title}
-      </Typography>
+      <p className="font-medium text-foreground">{title}</p>
       {description && (
-        <Typography
-          variant="body2"
-          sx={{
-            color: "text.secondary",
-            maxWidth: 360
-          }}>
-          {description}
-        </Typography>
+        <p className="mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground">{description}</p>
       )}
-      {action}
-    </Stack>
+      {action && <div className="mt-5">{action}</div>}
+    </div>
   );
 }

@@ -1,6 +1,3 @@
-import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
 
@@ -9,34 +6,19 @@ export default async function AuthGroupLayout({ children }: { children: React.Re
   if (user) redirect("/dashboard");
 
   return (
-    <Box
-      sx={{
-        minHeight: "100dvh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        px: { xs: 2, sm: 3 },
-        py: { xs: 3, sm: 6 },
-        bgcolor: "background.default",
-      }}
-    >
-      <Stack spacing={{ xs: 3, sm: 4 }} sx={{ width: "100%", maxWidth: { xs: 520, sm: 520 } }}>
-        <Stack
-          direction="row"
-          spacing={1.5}
-          sx={{
-            alignItems: "center",
-            justifyContent: "center"
-          }}>
-          <Box sx={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", bgcolor: "primary.main" }} aria-hidden />
-          <Typography variant="subtitle1" sx={{
-            fontWeight: 700
-          }}>
+    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background px-4 py-8">
+      <div aria-hidden className="absolute inset-x-0 top-0 h-80 bg-[radial-gradient(ellipse_at_top,var(--primary),transparent_70%)] opacity-10" />
+      <div className="relative w-full max-w-md space-y-8">
+        <div className="flex items-center justify-center gap-3">
+          <div className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+            <span className="size-2 rounded-sm bg-current" />
+          </div>
+          <span className="text-base font-semibold tracking-tight">
             Agent Platform
-          </Typography>
-        </Stack>
+          </span>
+        </div>
         {children}
-      </Stack>
-    </Box>
+      </div>
+    </main>
   );
 }

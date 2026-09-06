@@ -2,14 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import { CheckCircle2, KeyRound, ShieldCheck } from "lucide-react";
-
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui";
 import { formatDateTime } from "@/lib/format";
 import type { Device, DeviceType } from "@/types";
@@ -33,9 +28,9 @@ function PairingPattern({ code }: { code: string }) {
   }, [code]);
 
   return (
-    <Box aria-label="Pairing pattern" role="img" sx={{ display: "grid", gridTemplateColumns: "repeat(11, 1fr)", gap: "2px", width: 164, height: 164, p: 1, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
-      {cells.map((filled, index) => <Box key={index} sx={{ bgcolor: filled ? "text.primary" : "transparent", borderRadius: "1px" }} />)}
-    </Box>
+    <div aria-label="Pairing pattern" role="img" className="grid size-41 grid-cols-11 gap-0.5 rounded-xl border border-border p-2">
+      {cells.map((filled, index) => <span key={index} className={`rounded-[1px] ${filled ? "bg-foreground" : ""}`} />)}
+    </div>
   );
 }
 
@@ -55,6 +50,7 @@ export function PairDeviceFlow() {
   const [device, setDevice] = useState<Device | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const steps: Step[] = ["select", "code", "sign-in", "approval", "connected"];
 
   const generateCode = async () => {
     setPending(true);
@@ -77,77 +73,83 @@ export function PairDeviceFlow() {
   };
 
   return (
-    <Grid container spacing={2.5}>
-      <Grid size={{ xs: 12, md: 7 }}>
-        <SectionCard title="Secure pairing" subtitle="Pairing requires a short-lived code, a signed-in companion app, and your approval.">
-          <Stack spacing={3}>
-            {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
-            <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-              {["Choose device", "Generate code", "Sign in", "Approve", "Connected"].map((label, index) => (
-                <Typography key={label} variant="caption" sx={{ fontWeight: step === ["select", "code", "sign-in", "approval", "connected"][index] ? 700 : 400, color: index <= ["select", "code", "sign-in", "approval", "connected"].indexOf(step) ? "primary.main" : "text.secondary" }}>{index + 1}. {label}</Typography>
-              ))}
-            </Stack>
+    <div className="grid gap-5 md:grid-cols-12">
+      <SectionCard title="Secure pairing" subtitle="Pairing requires a short-lived code, a signed-in companion app, and your approval." className="md:col-span-7">
+        <div className="space-y-6">
+          {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+          <ol className="flex flex-wrap gap-x-4 gap-y-2">
+            {["Choose device", "Generate code", "Sign in", "Approve", "Connected"].map((label, index) => (
+              <li key={label} className={`text-xs ${index <= steps.indexOf(step) ? "font-medium text-primary" : "text-muted-foreground"}`}>{index + 1}. {label}</li>
+            ))}
+          </ol>
 
-            {step === "select" && (
-              <>
-                <Typography variant="body2" color="text.secondary">Choose the kind of device using the companion application.</Typography>
-                <Grid container spacing={1.5}>
-                  {deviceTypes.map((item) => (
-                    <Grid key={item.type} size={{ xs: 12, sm: 4 }}>
-                      <Button fullWidth variant={type === item.type ? "contained" : "outlined"} onClick={() => setType(item.type)} sx={{ minHeight: 118, alignItems: "flex-start", justifyContent: "flex-start", textAlign: "left", p: 2 }}>
-                        <Stack spacing={1}><DeviceTypeIcon type={item.type} size={24} /><Box><Typography sx={{ fontWeight: 700 }}>{item.label}</Typography><Typography variant="caption" sx={{ opacity: 0.85, textTransform: "none", display: "block" }}>{item.description}</Typography></Box></Stack>
-                      </Button>
-                    </Grid>
-                  ))}
-                </Grid>
-                <Button variant="contained" startIcon={<KeyRound size={18} />} onClick={generateCode} disabled={pending} sx={{ alignSelf: "flex-start" }}>{pending ? "Generating…" : "Generate pairing code"}</Button>
-              </>
-            )}
+          {step === "select" && (
+            <div className="space-y-5">
+              <p className="text-sm text-muted-foreground">Choose the kind of device using the companion application.</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {deviceTypes.map((item) => (
+                  <Button
+                    key={item.type}
+                    variant={type === item.type ? "default" : "outline"}
+                    onClick={() => setType(item.type)}
+                    className="h-auto min-h-30 items-start justify-start whitespace-normal rounded-xl p-4 text-left"
+                  >
+                    <span className="space-y-2">
+                      <DeviceTypeIcon type={item.type} size={22} />
+                      <span className="block font-medium">{item.label}</span>
+                      <span className="block text-xs font-normal opacity-75">{item.description}</span>
+                    </span>
+                  </Button>
+                ))}
+              </div>
+              <Button onClick={() => void generateCode()} disabled={pending}><KeyRound size={18} />{pending ? "Generating…" : "Generate pairing code"}</Button>
+            </div>
+          )}
 
-            {step === "code" && pairing && (
-              <Stack spacing={2}>
-                <Typography variant="body2">Open the companion app on the selected device and enter this one-time code, or scan the pairing pattern.</Typography>
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ alignItems: { sm: "center" } }}>
-                  <PairingPattern code={pairing.code} />
-                  <Box><Typography variant="h4" sx={{ fontFamily: "var(--font-geist-mono)", letterSpacing: "0.08em" }}>{pairing.code}</Typography><Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Expires {formatDateTime(pairing.expiresAt)}</Typography></Box>
-                </Stack>
-                <Button variant="contained" onClick={() => setStep("sign-in")} sx={{ alignSelf: "flex-start" }}>I entered the code</Button>
-              </Stack>
-            )}
+          {step === "code" && pairing && (
+            <div className="space-y-5">
+              <p className="text-sm leading-6 text-muted-foreground">Open the companion app on the selected device and enter this one-time code, or scan the pairing pattern.</p>
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                <PairingPattern code={pairing.code} />
+                <div>
+                  <p className="font-mono text-2xl font-semibold tracking-[0.12em]">{pairing.code}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">Expires {formatDateTime(pairing.expiresAt)}</p>
+                </div>
+              </div>
+              <Button onClick={() => setStep("sign-in")}>I entered the code</Button>
+            </div>
+          )}
 
-            {step === "sign-in" && (
-              <Stack spacing={2}>
-                <Typography variant="body2">Sign in to the companion app with the same account, then return here. The device receives no management credential from this page.</Typography>
-                <Button variant="contained" onClick={() => setStep("approval")} sx={{ alignSelf: "flex-start" }}>Companion app is signed in</Button>
-              </Stack>
-            )}
+          {step === "sign-in" && (
+            <div className="space-y-5">
+              <p className="text-sm leading-6 text-muted-foreground">Sign in to the companion app with the same account, then return here. The device receives no management credential from this page.</p>
+              <Button onClick={() => setStep("approval")}>Companion app is signed in</Button>
+            </div>
+          )}
 
-            {step === "approval" && (
-              <Stack spacing={2}>
-                <Alert icon={<ShieldCheck size={20} />} severity="info">Review the device type and approve its console connection. This grants only MCP and agent task access.</Alert>
-                <Button variant="contained" startIcon={<ShieldCheck size={18} />} onClick={approve} disabled={pending} sx={{ alignSelf: "flex-start" }}>{pending ? "Approving…" : "Approve device"}</Button>
-              </Stack>
-            )}
+          {step === "approval" && (
+            <div className="space-y-5">
+              <Alert><ShieldCheck className="size-4 text-info" /><AlertDescription>Review the device type and approve its console connection. This grants only MCP and agent task access.</AlertDescription></Alert>
+              <Button onClick={() => void approve()} disabled={pending}><ShieldCheck size={18} />{pending ? "Approving…" : "Approve device"}</Button>
+            </div>
+          )}
 
-            {step === "connected" && device && (
-              <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
-                <Stack direction="row" spacing={1} sx={{ alignItems: "center", color: "success.main" }}><CheckCircle2 size={24} /><Typography variant="h6">Device connected</Typography></Stack>
-                <Typography variant="body2" color="text.secondary">{device.name} is now connected to the console. You can review its network approval, MCP connection, and agent task scope.</Typography>
-                <Button component={Link} href={`/dashboard/devices/${device.id}`} variant="contained">View device</Button>
-              </Stack>
-            )}
-          </Stack>
-        </SectionCard>
-      </Grid>
-      <Grid size={{ xs: 12, md: 5 }}>
-        <SectionCard title="What approval allows">
-          <Stack spacing={2}>
-            <Typography variant="body2"><strong>Connection health:</strong> review application, MCP, and agent connection state.</Typography>
-            <Typography variant="body2"><strong>Task orchestration:</strong> queue approved AI-agent tasks and inspect their history.</Typography>
-            <Typography variant="body2"><strong>No direct device control:</strong> pairing does not expose hardware controls, shell access, or device credentials.</Typography>
-          </Stack>
-        </SectionCard>
-      </Grid>
-    </Grid>
+          {step === "connected" && device && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-success"><CheckCircle2 size={22} /><p className="font-medium">Device connected</p></div>
+              <p className="text-sm leading-6 text-muted-foreground">{device.name} is now connected to the console. You can review its network approval, MCP connection, and agent task scope.</p>
+              <Button render={<Link href={`/dashboard/devices/${device.id}`} />} nativeButton={false}>View device</Button>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+      <SectionCard title="What approval allows" className="md:col-span-5">
+        <div className="space-y-4 text-sm leading-6 text-muted-foreground">
+          <p><strong className="text-foreground">Connection health:</strong> review application, MCP, and agent connection state.</p>
+          <p><strong className="text-foreground">Task orchestration:</strong> queue approved AI-agent tasks and inspect their history.</p>
+          <p><strong className="text-foreground">No direct device control:</strong> pairing does not expose hardware controls, shell access, or device credentials.</p>
+        </div>
+      </SectionCard>
+    </div>
   );
 }

@@ -1,6 +1,4 @@
-import Stack from "@mui/material/Stack";
-import Chip from "@mui/material/Chip";
-import Typography from "@mui/material/Typography";
+import { Badge } from "@/components/ui/badge";
 
 interface TerminalStatusBarProps {
   cwd: string;
@@ -10,14 +8,12 @@ interface TerminalStatusBarProps {
 
 export function TerminalStatusBar({ cwd, busy, allowedCommands }: TerminalStatusBarProps) {
   return (
-    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flexWrap: "wrap", gap: 1 }}>
-      <Chip size="small" color={busy ? "warning" : "success"} label={busy ? "Running…" : "● MCP Connected"} />
-      <Typography variant="caption" sx={{ color: "text.secondary", fontFamily: "monospace" }}>
-        {cwd}
-      </Typography>
-      <Typography variant="caption" sx={{ color: "text.secondary" }}>
-        Allowed: {allowedCommands.join(", ") || "none"}
-      </Typography>
-    </Stack>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+      <Badge className={busy ? "border-warning/30 bg-warning/10 text-warning" : "border-success/30 bg-success/10 text-success"}>
+        <span className="size-1.5 rounded-full bg-current" />{busy ? "Running…" : "MCP Connected"}
+      </Badge>
+      <span className="font-mono text-muted-foreground">{cwd}</span>
+      <span className="text-muted-foreground">Allowed: {allowedCommands.join(", ") || "none"}</span>
+    </div>
   );
 }

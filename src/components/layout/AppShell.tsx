@@ -1,43 +1,38 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Box from "@mui/material/Box";
-import { Sidebar, SIDEBAR_WIDTH, SIDEBAR_WIDTH_COMPACT } from "./Sidebar";
+import { Sidebar } from "./Sidebar";
 import { MobileNavigation } from "./MobileNavigation";
 import { DashboardChromeProvider } from "./DashboardChromeContext";
+import { DashboardRealtimeProvider } from "@/components/realtime/DashboardRealtimeProvider";
 import type { HeaderUser } from "./header/types";
 
 export function AppShell({ children, user = null }: { children: ReactNode; user?: HeaderUser | null }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100dvh" }}>
-      <Box
-        component="nav"
+    <div className="flex min-h-dvh bg-background">
+      <nav
         aria-label="Sidebar navigation"
-        sx={{
-          display: { xs: "none", md: "block" },
-          width: { md: SIDEBAR_WIDTH_COMPACT, lg: SIDEBAR_WIDTH },
-          flexShrink: 0,
-          borderRight: "1px solid",
-          borderColor: "divider",
-        }}
+        className="hidden shrink-0 border-r border-sidebar-border bg-sidebar md:block md:w-[var(--sidebar-width-compact)] lg:w-[var(--sidebar-width)]"
       >
-        <Box sx={{ position: "sticky", top: 0, height: "100dvh" }}>
-          <Box sx={{ display: { md: "block", lg: "none" }, height: "100%" }}>
+        <div className="sticky top-0 h-dvh">
+          <div className="h-full lg:hidden">
             <Sidebar compact />
-          </Box>
-          <Box sx={{ display: { md: "none", lg: "block" }, height: "100%" }}>
+          </div>
+          <div className="hidden h-full lg:block">
             <Sidebar />
-          </Box>
-        </Box>
-      </Box>
+          </div>
+        </div>
+      </nav>
 
       <MobileNavigation open={mobileOpen} onClose={() => setMobileOpen(false)} />
 
       <DashboardChromeProvider value={{ openMobileNav: () => setMobileOpen(true), user }}>
-        <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>{children}</Box>
+        <DashboardRealtimeProvider>
+          <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+        </DashboardRealtimeProvider>
       </DashboardChromeProvider>
-    </Box>
+    </div>
   );
 }

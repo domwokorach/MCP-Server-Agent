@@ -1,12 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
 import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useDashboardChrome } from "../DashboardChromeContext";
 import { PageTitle } from "./PageTitle";
 import { HeaderSearch } from "./HeaderSearch";
@@ -17,9 +13,7 @@ export interface DashboardHeaderProps {
   title: string;
   description?: string;
   breadcrumbs?: HeaderBreadcrumb[];
-  /** Declarative CTA rendered as a styled button (desktop/tablet) or folded into the mobile overflow menu. */
   primaryAction?: HeaderPrimaryAction;
-  /** Escape hatch for a fully custom trigger (e.g. a dialog-opening button) that always stays visible. Takes precedence over `primaryAction`. */
   primaryActionSlot?: ReactNode;
   onSearch?: (value: string) => void;
   searchPlaceholder?: string;
@@ -27,7 +21,6 @@ export interface DashboardHeaderProps {
   onMarkNotificationRead?: (id: string) => void;
   onMarkAllNotificationsRead?: () => void;
   onHelpClick?: () => void;
-  /** Overrides the signed-in user resolved from `AppShell` context; pass `null` to hide the profile menu. */
   user?: HeaderUser | null;
   onLogout?: () => void | Promise<void>;
   sticky?: boolean;
@@ -53,45 +46,26 @@ export function DashboardHeader({
   const resolvedUser = user !== undefined ? user : (chrome?.user ?? null);
 
   return (
-    <AppBar
-      position={sticky ? "sticky" : "static"}
-      elevation={0}
-      sx={{
-        top: 0,
-        zIndex: (theme) => theme.zIndex.appBar,
-        bgcolor: "var(--header-bg)",
-        backgroundImage: "none",
-        borderBottom: "1px solid var(--header-border)",
-        color: "var(--header-title)",
-      }}
-    >
-      <Stack sx={{ px: { xs: 2, sm: 3, lg: 4 }, py: { xs: 1, sm: 1.25 } }}>
-        <Box
-          sx={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            gap: { xs: 1, sm: 2 },
-            minHeight: { xs: 56, sm: 60, md: 64 },
-          }}
-        >
+    <header className={`${sticky ? "sticky top-0" : ""} z-30 border-b border-border bg-background/90 backdrop-blur-xl`}>
+      <div className="px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex min-h-11 items-center gap-2 sm:gap-4">
           {chrome && (
-            <IconButton
-              edge="start"
+            <Button
+              variant="ghost"
+              size="icon"
               aria-label="Open navigation menu"
               onClick={chrome.openMobileNav}
-              sx={{ display: { xs: "inline-flex", md: "none" }, flexShrink: 0, ml: -1 }}
+              className="shrink-0 md:hidden"
             >
-              <Menu size={22} />
-            </IconButton>
+              <Menu size={21} />
+            </Button>
           )}
 
-          <Box sx={{ flex: "1 1 auto", minWidth: 0 }}>
+          <div className="min-w-0 flex-1">
             <PageTitle title={title} breadcrumbs={breadcrumbs} />
-          </Box>
+          </div>
 
           <HeaderSearch placeholder={searchPlaceholder} onSearch={onSearch} />
-
           <HeaderActions
             primaryAction={primaryAction}
             primaryActionSlot={primaryActionSlot}
@@ -102,21 +76,9 @@ export function DashboardHeader({
             user={resolvedUser}
             onLogout={onLogout}
           />
-        </Box>
-
-        {description && (
-          <Typography
-            sx={{
-              color: "var(--header-muted)",
-              fontSize: { xs: "0.8125rem", sm: "0.875rem" },
-              mt: 0.5,
-              maxWidth: 640,
-            }}
-          >
-            {description}
-          </Typography>
-        )}
-      </Stack>
-    </AppBar>
+        </div>
+        {description && <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>}
+      </div>
+    </header>
   );
 }

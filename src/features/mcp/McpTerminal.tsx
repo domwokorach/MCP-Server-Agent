@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Box from "@mui/material/Box";
 import { Terminal } from "@xterm/xterm";
 import type { McpLogEntry } from "@/services/mcpRuntimeService";
 
@@ -39,11 +38,5 @@ export function McpTerminal({ logs }: { logs: McpLogEntry[] }) {
     }
   }, [logs]);
 
-  return (
-    <Box
-      ref={containerRef}
-      sx={{ bgcolor: "#101418", minHeight: { xs: 320, md: 400 }, px: 1, py: 1.5, overflow: "hidden" }}
-      aria-label="MCP server logs"
-    />
-  );
+  return <div ref={containerRef} className="min-h-80 overflow-hidden bg-[#101418] px-2 py-3 md:min-h-100" aria-label="MCP server logs" />;
 }

@@ -7,6 +7,7 @@ export class GatewayError extends Error {
       | "CONCURRENCY_LIMIT"
       | "PAYLOAD_TOO_LARGE"
       | "TIMEOUT"
+      | "CANCELLED"
       | "INTERNAL_ERROR",
     message: string
   ) {
@@ -51,14 +52,22 @@ export function acquireConcurrencySlot(identityKey: string): () => void {
   };
 }
 
-export async function withTimeout<T>(promise: Promise<T>, ms = TOOL_TIMEOUT_MS): Promise<T> {
+export async function withTimeout<T>(promise: Promise<T>, ms = TOOL_TIMEOUT_MS, signal?: AbortSignal): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new GatewayError("TIMEOUT", `Tool execution exceeded ${ms}ms.`)), ms);
   });
+  let abort: (() => void) | undefined;
+  const cancelled = new Promise<never>((_, reject) => {
+    if (!signal) return;
+    abort = () => reject(new GatewayError("CANCELLED", "Tool execution was cancelled by the MCP client."));
+    if (signal.aborted) abort();
+    else signal.addEventListener("abort", abort, { once: true });
+  });
   try {
-    return await Promise.race([promise, timeout]);
+    return await Promise.race([promise, timeout, cancelled]);
   } finally {
     clearTimeout(timer!);
+    if (signal && abort) signal.removeEventListener("abort", abort);
   }
 }

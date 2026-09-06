@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Alert from "@mui/material/Alert";
-import Chip from "@mui/material/Chip";
-import Switch from "@mui/material/Switch";
-import Typography from "@mui/material/Typography";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { ResponsiveTable, type ResponsiveTableColumn } from "@/components/ui";
 
 interface ToolRow {
@@ -58,35 +57,19 @@ export function ToolsTable() {
   };
 
   const columns: ResponsiveTableColumn<ToolRow>[] = [
-    { key: "name", header: "Tool", render: (t) => <Typography variant="body2" sx={{ fontWeight: 600 }}>{t.name}</Typography> },
-    { key: "description", header: "Description", render: (t) => t.description, hideOnMobile: true },
-    { key: "role", header: "Required role", render: (t) => <Chip size="small" label={t.requiredRole} variant="outlined" /> },
-    { key: "requests", header: "Requests", render: (t) => t.requestCount, align: "right" },
-    { key: "errors", header: "Errors", render: (t) => t.errorCount, align: "right" },
-    { key: "avg", header: "Avg. time", render: (t) => `${t.averageExecutionMs} ms`, align: "right" },
-    {
-      key: "enabled",
-      header: "Enabled",
-      align: "right",
-      render: (t) => (
-        <Switch
-          checked={t.enabled}
-          disabled={pending === t.name}
-          onChange={() => void toggle(t)}
-          slotProps={{ input: { "aria-label": `Toggle ${t.name}` } }}
-        />
-      ),
-    },
+    { key: "name", header: "Tool", render: (tool) => <span className="font-mono text-xs font-semibold">{tool.name}</span> },
+    { key: "description", header: "Description", render: (tool) => <span className="text-muted-foreground">{tool.description}</span>, hideOnMobile: true },
+    { key: "role", header: "Required role", render: (tool) => <Badge variant="outline">{tool.requiredRole}</Badge> },
+    { key: "requests", header: "Requests", render: (tool) => tool.requestCount, align: "right" },
+    { key: "errors", header: "Errors", render: (tool) => tool.errorCount, align: "right" },
+    { key: "avg", header: "Avg. time", render: (tool) => `${tool.averageExecutionMs} ms`, align: "right" },
+    { key: "enabled", header: "Enabled", align: "right", render: (tool) => <Switch checked={tool.enabled} disabled={pending === tool.name} onCheckedChange={() => void toggle(tool)} aria-label={`Toggle ${tool.name}`} /> },
   ];
 
   return (
     <>
-      {message && (
-        <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setMessage(undefined)}>
-          {message}
-        </Alert>
-      )}
-      <ResponsiveTable columns={columns} rows={tools} getRowKey={(t) => t.name} mobileTitle={(t) => t.name} />
+      {message && <Alert className="mb-5" variant="destructive"><AlertDescription>{message}</AlertDescription></Alert>}
+      <ResponsiveTable columns={columns} rows={tools} getRowKey={(tool) => tool.name} mobileTitle={(tool) => tool.name} />
     </>
   );
 }

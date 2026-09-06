@@ -1,5 +1,6 @@
 import type { AgentTask } from "@/types";
 import { mockAgentTasks } from "@/lib/mock-data";
+import { publishRealtimeEvent } from "@/lib/realtime";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -23,6 +24,7 @@ export async function createAgentTask(input: {
     createdAt: new Date().toISOString(),
   };
   mockAgentTasks.unshift(task);
+  publishRealtimeEvent("task.created", { taskId: task.id, deviceId: task.deviceId, status: task.status });
   return task;
 }
 
@@ -35,5 +37,6 @@ export async function cancelAgentTask(id: string): Promise<{ success: boolean; m
   }
   task.status = "failed";
   task.completedAt = new Date().toISOString();
+  publishRealtimeEvent("task.cancelled", { taskId: task.id, deviceId: task.deviceId, status: "cancelled" });
   return { success: true, message: `Cancelled agent task ${id}.` };
 }

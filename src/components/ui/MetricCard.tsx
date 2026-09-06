@@ -1,8 +1,5 @@
 import type { ReactNode } from "react";
-import Card from "@mui/material/Card";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
+import { Card, CardContent } from "./card";
 
 interface MetricCardProps {
   label: string;
@@ -13,48 +10,21 @@ interface MetricCardProps {
 
 export function MetricCard({ label, value, icon, trend }: MetricCardProps) {
   return (
-    <Card sx={{ borderRadius: "var(--radius-lg)", p: 3, height: "100%" }}>
-      <Stack
-        direction="row"
-        sx={{
-          alignItems: "flex-start",
-          justifyContent: "space-between"
-        }}>
-        <Stack spacing={0.5}>
-          <Typography variant="body2" sx={{
-            color: "text.secondary"
-          }}>
-            {label}
-          </Typography>
-          <Typography variant="h3" component="p">
-            {value}
-          </Typography>
+    <Card className="h-full rounded-2xl border border-border py-0 shadow-sm">
+      <CardContent className="flex items-start justify-between px-5 py-5 sm:px-6">
+        <div className="min-w-0 space-y-1">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground">{label}</p>
+          <p className="font-mono text-2xl font-semibold tracking-tight text-foreground">{value}</p>
           {trend && (
-            <Typography
-              variant="caption"
-              sx={{ color: trend.positive ? "success.main" : "error.main", fontWeight: 600 }}
-            >
-              {trend.value}
-            </Typography>
+            <p className={`text-xs font-medium ${trend.positive ? "text-success" : "text-destructive"}`}>{trend.value}</p>
           )}
-        </Stack>
+        </div>
         {icon && (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 40,
-              height: 40,
-              borderRadius: "var(--radius-md)",
-              bgcolor: "action.hover",
-              color: "primary.main",
-            }}
-          >
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
             {icon}
-          </Box>
+          </div>
         )}
-      </Stack>
+      </CardContent>
     </Card>
   );
 }

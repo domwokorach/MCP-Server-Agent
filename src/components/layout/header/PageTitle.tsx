@@ -1,5 +1,3 @@
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import { Breadcrumbs } from "./Breadcrumbs";
 import type { HeaderBreadcrumb } from "./types";
 
@@ -11,31 +9,14 @@ interface PageTitleProps {
 
 export function PageTitle({ title, description, breadcrumbs }: PageTitleProps) {
   return (
-    <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+    <div className="min-w-0 space-y-0.5">
       {breadcrumbs && breadcrumbs.length > 0 && <Breadcrumbs items={breadcrumbs} />}
-      <Typography
-        component="h1"
-        noWrap
-        sx={{
-          color: "var(--header-title)",
-          fontWeight: 700,
-          letterSpacing: "-0.02em",
-          lineHeight: 1.2,
-          fontSize: { xs: "1.25rem", sm: "1.5rem", lg: "1.75rem" },
-        }}
-      >
+      <h1 className="truncate text-xl font-semibold tracking-tight text-foreground sm:text-2xl lg:text-[1.75rem]">
         {title}
-      </Typography>
+      </h1>
       {description && (
-        <Typography
-          sx={{
-            color: "var(--header-muted)",
-            fontSize: { xs: "0.8125rem", sm: "0.875rem" },
-          }}
-        >
-          {description}
-        </Typography>
+        <p className="text-sm text-muted-foreground">{description}</p>
       )}
-    </Stack>
+    </div>
   );
 }
