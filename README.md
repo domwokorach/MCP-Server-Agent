@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# My Agent Platform
 
-## Getting Started
+The dashboard and MCP service for **My Agent Platform**.
 
-First, run the development server:
+## MCP server
+
+The server exposes nine Zod-validated tools over STDIO and Streamable HTTP:
+
+```bash
+npm run mcp
+```
+
+Use the Inspector during local development:
+
+```bash
+npm run mcp:inspect
+```
+
+Remote clients use `POST /api/mcp`. VS Code can load the STDIO server from `.vscode/mcp.json`.
+
+## Dashboard and management API
+
+Run the dashboard with:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `/dashboard/mcp` for live status, read-only redacted logs, and the approved start, stop, and restart controls. The dashboard receives status changes using server-sent events.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open `/dashboard/terminal` for an interactive, admin-only terminal backed by the MCP `terminal_execute` tool. Every command is authenticated (session, admin role), CSRF-checked, classified into a SAFE / REQUIRES_CONFIRMATION / ADMIN_ONLY / DENIED tier (`src/lib/terminal/command-policy.ts`), and then run through the same MCP security gateway pipeline used by STDIO/HTTP MCP clients (`POST /api/terminal/execute`). The tool itself stays disabled until an administrator sets `MCP_TERMINAL_ENABLED=true`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set `MCP_MANAGEMENT_TOKEN` in every production environment. Management API callers must provide it as a Bearer token. State-changing requests must also send `x-mcp-csrf: 1` and a same-origin `Origin`:
 
-## Learn More
+```bash
+curl -X POST http://localhost:3000/api/mcp/restart \
+  -H "Authorization: Bearer $MCP_MANAGEMENT_TOKEN" \
+  -H "x-mcp-csrf: 1"
+```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+On localhost, controls use a local-only development bootstrap; production requests without a configured token are rejected. The process manager starts only the repository's fixed `tsx apps/mcp/src/index.ts` command and redacts secrets from emitted logs.
+# MCP-Server-Agent
