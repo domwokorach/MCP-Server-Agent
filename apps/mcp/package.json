@@ -1,0 +1,8 @@
+{
+  "name": "@my-agent-platform/mcp",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  }
+}

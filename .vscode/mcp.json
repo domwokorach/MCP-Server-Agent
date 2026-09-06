@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "myAgentPlatform": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "apps/mcp/src/index.ts"]
+    }
+  }
+}
