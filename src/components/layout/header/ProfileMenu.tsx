@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -51,10 +52,12 @@ export function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-66">
-        <DropdownMenuLabel>
-          <p className="truncate font-medium text-foreground">{user.name}</p>
-          {user.email && <p className="truncate pt-0.5 text-xs font-normal text-muted-foreground">{user.email}</p>}
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            <p className="truncate font-medium text-foreground">{user.name}</p>
+            {user.email && <p className="truncate pt-0.5 text-xs font-normal text-muted-foreground">{user.email}</p>}
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/settings")}>
           <User />
