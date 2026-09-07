@@ -16,7 +16,7 @@ export function ProfileSettings() {
   const [user, setUser] = useState<User | null>(null);
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "logging-out" | "error">("idle");
 
   useEffect(() => {
     getCurrentUser().then((current) => {
@@ -33,6 +33,18 @@ export function ProfileSettings() {
       const updated = await updateProfile({ fullName, address });
       setUser(updated);
       setStatus("saved");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  const handleLogout = async () => {
+    setStatus("logging-out");
+    try {
+      await logout();
+      window.dispatchEvent(new Event("auth:logout"));
+      router.replace("/login");
+      router.refresh();
     } catch {
       setStatus("error");
     }
@@ -57,7 +69,9 @@ export function ProfileSettings() {
         </div>
         <div className="flex flex-wrap gap-3">
           <Button onClick={handleSave} disabled={status === "saving"}>{status === "saving" ? "Saving…" : "Save changes"}</Button>
-          <Button variant="outline" onClick={() => void logout().then(() => router.push("/login"))}>Sign out</Button>
+          <Button variant="outline" disabled={status === "logging-out"} onClick={() => void handleLogout()}>
+            {status === "logging-out" ? "Logging out..." : "Sign out"}
+          </Button>
         </div>
       </div>
     </SectionCard>

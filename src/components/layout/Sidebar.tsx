@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "./nav-items";
+import { LogOut } from "lucide-react";
+import { logout } from "@/services/authService";
+import { useRouter } from "next/navigation";
 
 export const SIDEBAR_WIDTH = "var(--sidebar-width)";
 export const SIDEBAR_WIDTH_COMPACT = "var(--sidebar-width-compact)";
@@ -14,6 +17,15 @@ interface SidebarProps {
 
 export function Sidebar({ compact, onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    window.dispatchEvent(new Event("auth:logout"));
+    onNavigate?.();
+    router.replace("/login");
+    router.refresh();
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -53,6 +65,19 @@ export function Sidebar({ compact, onNavigate }: SidebarProps) {
           );
         })}
       </nav>
+      <div className={`border-t border-sidebar-border p-3 ${compact ? "px-2" : ""}`}>
+        <button
+          type="button"
+          onClick={() => void handleLogout()}
+          className={`flex min-h-11 w-full items-center rounded-xl px-3 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground ${
+            compact ? "justify-center" : "gap-3"
+          }`}
+          title={compact ? "Log out" : undefined}
+        >
+          <LogOut className="size-5 shrink-0" />
+          {!compact && <span>Log out</span>}
+        </button>
+      </div>
     </div>
   );
 }

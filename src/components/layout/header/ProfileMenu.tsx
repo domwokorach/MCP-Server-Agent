@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, Settings, ShieldCheck, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "./ThemeToggle";
+import { logout } from "@/services/authService";
 import type { HeaderUser } from "./types";
 
 interface ProfileMenuProps {
@@ -30,15 +32,23 @@ function initialsFor(name: string): string {
 
 export function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
   const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    if (onLogout) {
-      await onLogout();
-      return;
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      if (onLogout) {
+        await onLogout();
+        return;
+      }
+      await logout();
+      window.dispatchEvent(new Event("auth:logout"));
+      router.replace("/login");
+      router.refresh();
+    } finally {
+      setLoggingOut(false);
     }
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
   };
 
   return (
@@ -77,9 +87,9 @@ export function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
           <ThemeToggle />
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={() => void handleLogout()}>
+        <DropdownMenuItem variant="destructive" disabled={loggingOut} onClick={() => void handleLogout()}>
           <LogOut />
-          Log out
+          {loggingOut ? "Logging out..." : "Log out"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

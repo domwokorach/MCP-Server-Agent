@@ -39,6 +39,12 @@ export function DashboardRealtimeProvider({ children }: { children: ReactNode })
 
   useEffect(() => {
     let disposed = false;
+    const disconnect = () => {
+      sourceRef.current?.close();
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      setState("offline");
+    };
     const connect = () => {
       if (disposed) return;
       readyRef.current = false;
@@ -76,6 +82,7 @@ export function DashboardRealtimeProvider({ children }: { children: ReactNode })
         reconnectTimerRef.current = setTimeout(() => {
           reconnectTimerRef.current = undefined;
           connect();
+          window.addEventListener("auth:logout", disconnect);
         }, delay);
       };
     };
@@ -100,6 +107,7 @@ export function DashboardRealtimeProvider({ children }: { children: ReactNode })
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
       clearInterval(staleCheck);
+      window.removeEventListener("auth:logout", disconnect);
     };
   }, [refreshAuthoritativeState, scheduleRefresh]);
 
