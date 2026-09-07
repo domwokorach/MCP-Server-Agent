@@ -26,6 +26,8 @@ export async function findOrCreateOAuthUser(provider: OAuthProvider, profile: OA
       email: normalizedEmail,
       address: "",
       role: "user",
+      // The OAuth provider has already verified this email address.
+      emailVerifiedAt: new Date(),
       oauthAccounts: { create: { provider, providerAccountId: profile.providerAccountId } },
     },
   });

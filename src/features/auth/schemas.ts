@@ -27,6 +27,17 @@ export const registerSchema = z
   });
 export type RegisterValues = z.infer<typeof registerSchema>;
 
+export const verifyEmailSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address."),
+  pin: z.string().regex(/^\d{6}$/, "Enter the 6-digit code."),
+});
+export type VerifyEmailValues = z.infer<typeof verifyEmailSchema>;
+
+export const resendVerificationSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address."),
+});
+export type ResendVerificationValues = z.infer<typeof resendVerificationSchema>;
+
 export const forgotPasswordSchema = z.object({
   email: z.string().trim().email("Enter a valid email address."),
 });

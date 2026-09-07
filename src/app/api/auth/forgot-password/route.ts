@@ -1,10 +1,15 @@
 import { randomBytes, createHash } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { forgotPasswordSchema } from "@/features/auth/schemas";
+import { sendPasswordResetEmail } from "@/lib/email/resend";
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { assertSameOriginCsrf } from "@/lib/api-security";
+
+function appUrl(): string {
+  return process.env.APP_URL || "http://localhost:3000";
+}
 
 export const runtime = "nodejs";
 
@@ -44,9 +49,20 @@ export async function POST(request: NextRequest) {
     ]);
     await logAudit({ actorType: "user", userId: user.id, action: "auth.password_reset_requested", ipAddress: ip });
 
-    // A production mailer must deliver the reset URL out of band. Never log
-    // or return this bearer token, even in development.
-    console.info("[auth] password reset requested; delivery provider is not configured.");
+    const resetUrl = new URL("/reset-password", appUrl());
+    resetUrl.searchParams.set("token", token);
+    try {
+      await sendPasswordResetEmail({
+        to: user.email,
+        fullName: user.fullName,
+        resetUrl: resetUrl.toString(),
+        expiresInMinutes: RESET_TOKEN_TTL_MS / 60_000,
+      });
+    } catch (error) {
+      // The token is already persisted; surfacing a delivery failure here
+      // would leak account existence, so log server-side only.
+      console.error("[auth] failed to send password reset email", error);
+    }
   }
 
   return NextResponse.json(GENERIC_RESPONSE);

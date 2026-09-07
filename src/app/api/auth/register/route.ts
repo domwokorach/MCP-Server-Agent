@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { registerSchema } from "@/features/auth/schemas";
 import { hashPassword } from "@/lib/auth/password";
-import { createSession, setSessionCookie } from "@/lib/auth/session";
-import { createAccessToken } from "@/lib/auth/jwt";
+import { createVerificationPin, PIN_TTL_MS } from "@/lib/auth/verification";
+import { sendVerificationPin } from "@/lib/email/resend";
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -48,13 +48,24 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  const session = await createSession(user.id, { ipAddress: ip, userAgent: request.headers.get("user-agent") });
-  await setSessionCookie(session.refreshToken);
-  const accessToken = await createAccessToken({ sub: user.id, role: user.role, sessionId: session.sessionId });
+  const pin = await createVerificationPin(user.id);
+  try {
+    await sendVerificationPin({
+      to: user.email,
+      fullName: user.fullName,
+      pin,
+      expiresInMinutes: PIN_TTL_MS / 60_000,
+    });
+  } catch (error) {
+    console.error("[auth] failed to send verification email", error);
+    return NextResponse.json(
+      { message: "Account created, but we couldn't send the verification email. Try resending it." },
+      { status: 502 }
+    );
+  }
+
   await logAudit({ actorType: "user", userId: user.id, action: "auth.register", ipAddress: ip });
 
-  return NextResponse.json(
-    { accessToken, user: { id: user.id, fullName: user.fullName, email: user.email, role: user.role } },
-    { status: 201 }
-  );
+  // No session is issued until the account is verified.
+  return NextResponse.json({ email: user.email }, { status: 201 });
 }

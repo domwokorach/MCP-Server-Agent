@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { ApiError } from "@/lib/api-client";
 import { login } from "@/services/authService";
 import { loginSchema, type LoginValues } from "./schemas";
 
@@ -27,6 +28,10 @@ export function LoginForm() {
       await login(values);
       router.push("/dashboard");
     } catch (error) {
+      if (error instanceof ApiError && error.code === "EMAIL_NOT_VERIFIED") {
+        router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
+        return;
+      }
       setServerError(error instanceof Error ? error.message : "Unable to sign in.");
     }
   };

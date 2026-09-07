@@ -14,9 +14,19 @@ export async function login(input: { email: string; password: string }): Promise
   return data.user;
 }
 
-export async function register(input: RegisterInput): Promise<User> {
-  const { data } = await apiClient.post<{ user: User }>("/auth/register", input);
+export async function register(input: RegisterInput): Promise<{ email: string }> {
+  const { data } = await apiClient.post<{ email: string }>("/auth/register", input);
+  return data;
+}
+
+export async function verifyEmail(input: { email: string; pin: string }): Promise<User> {
+  const { data } = await apiClient.post<{ user: User }>("/auth/verify-email", input);
   return data.user;
+}
+
+export async function resendVerification(email: string): Promise<{ message: string }> {
+  const { data } = await apiClient.post<{ message: string }>("/auth/resend-verification", { email });
+  return data;
 }
 
 export async function logout(): Promise<void> {

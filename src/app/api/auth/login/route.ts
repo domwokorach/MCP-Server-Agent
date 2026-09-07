@@ -48,6 +48,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: GENERIC_ERROR }, { status: 401 });
   }
 
+  if (!user.emailVerifiedAt) {
+    await logAudit({ actorType: "user", userId: user.id, action: "auth.login", ipAddress: ip, success: false });
+    return NextResponse.json(
+      { message: "Verify your email before signing in.", code: "EMAIL_NOT_VERIFIED", email: user.email },
+      { status: 403 }
+    );
+  }
+
   const session = await createSession(user.id, { ipAddress: ip, userAgent: request.headers.get("user-agent") });
   await setSessionCookie(session.refreshToken);
   const accessToken = await createAccessToken({ sub: user.id, role: user.role, sessionId: session.sessionId });

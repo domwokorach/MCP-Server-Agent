@@ -9,30 +9,34 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 import { SectionCard } from "@/components/ui";
 import { register as registerUser } from "@/services/authService";
 import { registerSchema, type RegisterValues } from "./schemas";
 
-const fields: Array<{ name: keyof RegisterValues; label: string; type?: string; autoComplete: string }> = [
+const textFields: Array<{ name: keyof RegisterValues; label: string; type?: string; autoComplete: string }> = [
   { name: "fullName", label: "Full name", autoComplete: "name" },
   { name: "email", label: "Email", type: "email", autoComplete: "email" },
   { name: "address", label: "Address", autoComplete: "street-address" },
-  { name: "password", label: "Password", type: "password", autoComplete: "new-password" },
-  { name: "confirmPassword", label: "Confirm password", type: "password", autoComplete: "new-password" },
 ];
 
 export function RegisterForm() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
-  });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterValues>({ resolver: zodResolver(registerSchema) });
+  const password = watch("password") ?? "";
 
   const onSubmit = async (values: RegisterValues) => {
     setServerError(null);
     try {
-      await registerUser(values);
-      router.push("/dashboard");
+      const { email } = await registerUser(values);
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch (error) {
       setServerError(error instanceof Error ? error.message : "Unable to create your account.");
     }
@@ -42,13 +46,29 @@ export function RegisterForm() {
     <SectionCard title="Create your account" subtitle="Start pairing devices and orchestrating agents.">
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
         {serverError && <Alert variant="destructive"><AlertDescription>{serverError}</AlertDescription></Alert>}
-        {fields.map(({ name, label, type = "text", autoComplete }) => (
+        {textFields.map(({ name, label, type = "text", autoComplete }) => (
           <div className="space-y-2" key={name}>
             <Label htmlFor={name}>{label}</Label>
             <Input id={name} type={type} autoComplete={autoComplete} aria-invalid={!!errors[name]} {...register(name)} />
             {errors[name] && <p className="text-xs text-destructive">{errors[name]?.message}</p>}
           </div>
         ))}
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <PasswordInput id="password" autoComplete="new-password" aria-invalid={!!errors.password} {...register("password")} />
+          <PasswordStrengthMeter password={password} />
+          {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <PasswordInput
+            id="confirmPassword"
+            autoComplete="new-password"
+            aria-invalid={!!errors.confirmPassword}
+            {...register("confirmPassword")}
+          />
+          {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>}
+        </div>
         <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Creating account…" : "Create account"}
         </Button>

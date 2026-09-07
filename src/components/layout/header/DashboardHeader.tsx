@@ -46,7 +46,16 @@ export function DashboardHeader({
   const resolvedUser = user !== undefined ? user : (chrome?.user ?? null);
 
   return (
-    <header className={`${sticky ? "sticky top-0" : ""} z-30 border-b border-border bg-background/90 backdrop-blur-xl`}>
+    <header
+      className={`dark relative isolate ${sticky ? "sticky top-0" : ""} z-30 overflow-hidden border-b border-border`}
+    >
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-[url('/images/mcp-banner.png')] bg-cover bg-center bg-no-repeat"
+      />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-r from-slate-950/92 via-slate-950/85 to-slate-950/75" />
+      <div aria-hidden className="absolute inset-0 -z-10 bg-background/10 backdrop-blur-md" />
+
       <div className="px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex min-h-11 items-center gap-2 sm:gap-4">
           {chrome && (
