@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { registerSchema } from "@/features/auth/schemas";
 import { hashPassword } from "@/lib/auth/password";
 import { createSession, setSessionCookie } from "@/lib/auth/session";
+import { createAccessToken } from "@/lib/auth/jwt";
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -47,12 +48,13 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  const token = await createSession(user.id, { ipAddress: ip, userAgent: request.headers.get("user-agent") });
-  await setSessionCookie(token);
+  const session = await createSession(user.id, { ipAddress: ip, userAgent: request.headers.get("user-agent") });
+  await setSessionCookie(session.refreshToken);
+  const accessToken = await createAccessToken({ sub: user.id, role: user.role, sessionId: session.sessionId });
   await logAudit({ actorType: "user", userId: user.id, action: "auth.register", ipAddress: ip });
 
   return NextResponse.json(
-    { user: { id: user.id, fullName: user.fullName, email: user.email, role: user.role } },
+    { accessToken, user: { id: user.id, fullName: user.fullName, email: user.email, role: user.role } },
     { status: 201 }
   );
 }

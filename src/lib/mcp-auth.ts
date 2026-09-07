@@ -1,11 +1,13 @@
 import type { NextRequest } from "next/server";
-import { getCurrentUser } from "@/lib/auth/session";
+import type { Role } from "@prisma/client";
+import { getCurrentUser, validateAccessTokenSession } from "@/lib/auth/session";
 import { resolveApiKeyToken } from "@/lib/auth/api-key";
+import { verifyAccessToken } from "@/lib/auth/jwt";
 
 export interface McpIdentity {
   type: "user" | "agent";
   userId: string;
-  role: string;
+  role: Role;
   label: string;
 }
 
@@ -19,6 +21,12 @@ export async function authenticateMcpRequest(request: NextRequest): Promise<McpI
   const bearerToken = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1];
 
   if (bearerToken) {
+    const claims = await verifyAccessToken(bearerToken);
+    if (claims) {
+      const user = await validateAccessTokenSession(claims.sub, claims.sessionId);
+      if (!user || user.role !== claims.role) return null;
+      return { type: "agent", userId: user.id, role: user.role, label: user.email };
+    }
     const identity = await resolveApiKeyToken(bearerToken);
     if (!identity) return null;
     return { type: "agent", userId: identity.userId, role: identity.role, label: identity.label };

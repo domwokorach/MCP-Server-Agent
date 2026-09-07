@@ -1,7 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import type { NextRequest } from "next/server";
-import { getCurrentUser } from "@/lib/auth/session";
-import { hasRole } from "@/lib/rbac";
+import { isAuthContext, requireRole } from "@/lib/auth/authorization";
 
 const requests = new Map<string, { count: number; resetAt: number }>();
 
@@ -43,8 +42,8 @@ export async function requireManagementAccess(request: NextRequest, requireCsrf 
   const limited = rateLimit(request);
   if (limited) return limited;
 
-  const currentUser = await getCurrentUser();
-  const isAdmin = Boolean(currentUser && hasRole(currentUser.role, "admin"));
+  const auth = await requireRole(request, "admin");
+  const isAdmin = isAuthContext(auth);
   const configuredToken = process.env.MCP_MANAGEMENT_TOKEN;
   const suppliedToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const hasManagementToken = Boolean(configuredToken && suppliedToken && tokensMatch(suppliedToken, configuredToken));

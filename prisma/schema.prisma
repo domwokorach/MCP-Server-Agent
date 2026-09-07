@@ -44,17 +44,33 @@ model User {
 }
 
 model Session {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash String    @unique
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime  @default(now())
-  expiresAt DateTime
-  revokedAt DateTime?
+  id               String         @id @default(cuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokenHash String         @unique
+  refreshTokens    RefreshToken[]
+  ipHash           String?
+  userAgent        String?
+  createdAt        DateTime       @default(now())
+  lastSeenAt       DateTime       @default(now())
+  expiresAt        DateTime
+  revokedAt        DateTime?
 
   @@index([userId])
+  @@index([expiresAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  rotatedAt DateTime?
+  revokedAt DateTime?
+
+  @@index([sessionId])
   @@index([expiresAt])
 }
 

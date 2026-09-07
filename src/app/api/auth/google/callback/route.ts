@@ -28,11 +28,11 @@ export async function GET(request: NextRequest) {
   try {
     const profile = await resolveGoogleProfile(code, stored.codeVerifier);
     const user = await findOrCreateOAuthUser("google", profile);
-    const token = await createSession(user.id, {
+    const session = await createSession(user.id, {
       ipAddress: clientIp(request),
       userAgent: request.headers.get("user-agent"),
     });
-    await setSessionCookie(token);
+    await setSessionCookie(session.refreshToken);
     await logAudit({ actorType: "user", userId: user.id, action: "auth.oauth_login", metadata: { provider: "google" } });
     return NextResponse.redirect(new URL("/dashboard", url.origin));
   } catch (error) {
