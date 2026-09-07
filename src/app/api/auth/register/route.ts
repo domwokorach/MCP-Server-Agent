@@ -57,11 +57,9 @@ export async function POST(request: NextRequest) {
       expiresInMinutes: PIN_TTL_MS / 60_000,
     });
   } catch (error) {
+    // The account is already created; the user can request a new code from
+    // the verify-email screen, so a delivery failure here isn't fatal.
     console.error("[auth] failed to send verification email", error);
-    return NextResponse.json(
-      { message: "Account created, but we couldn't send the verification email. Try resending it." },
-      { status: 502 }
-    );
   }
 
   await logAudit({ actorType: "user", userId: user.id, action: "auth.register", ipAddress: ip });
